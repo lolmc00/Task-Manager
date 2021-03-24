@@ -6,6 +6,8 @@ import sys
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
+from . import custom_widget
+from view import view_type
 
 class TopBar(QtWidgets.QWidget):
     """제목 표시줄 위젯"""
@@ -35,18 +37,36 @@ class TopBar(QtWidgets.QWidget):
         self.has_clicked = False
         self.is_maximized = False
         self.setStyleSheet(self.qss)
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setFixedHeight(self.bar_height)
+        self.left_layout = QtWidgets.QHBoxLayout()
+        self.left_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
+        self.left_layout.setContentsMargins(7, 7, 7, 0)
+        self.btn_home = custom_widget.HoverButton("")
+        self.btn_home.setImage("home_icon")
+        self.btn_home.clicked.connect(lambda: self.parent.setView(view_type.HOME_VIEW))
+        self.btn_home.setFixedSize(self.bar_height, self.bar_height)
+        self.right_layout = QtWidgets.QHBoxLayout()
+        self.right_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.right_layout.setContentsMargins(0, 0, 0, 0)
+        self.right_layout.setSpacing(0)
 
         btn_minimize = self.create_tool_btn('minimize.png', "#141414")
         btn_minimize.clicked.connect(self.show_minimized)
         btn_close = self.create_tool_btn('close.png', "#FF0000")
         btn_close.clicked.connect(self.close)
 
-        layout.addWidget(btn_minimize)
-        layout.addWidget(btn_close)
+        self.right_layout.addWidget(btn_minimize)
+        self.right_layout.addWidget(btn_close)
+        self.layout.addLayout(self.left_layout)
+        self.layout.addLayout(self.right_layout)
+
+    def create_home_btn(self):
+        self.left_layout.addWidget(self.btn_home)
+    
+    def remove_home_btn(self):
+        self.left_layout.removeWidget(self.btn_home)
 
     def create_tool_btn(self, icon_path, color):
         """제목표시줄 아이콘 생성"""

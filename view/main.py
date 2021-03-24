@@ -15,9 +15,7 @@ class MainWindow(QtWidgets.QWidget):
 
         # 전체 레이아웃 생성
         self.window_layout = QtWidgets.QVBoxLayout(self)
-        self.window_layout.setContentsMargins(0, 0, 0, 0)
-        self.window_layout.setSpacing(0)
-        self.window_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.window_layout.setContentsMargins(50, 50, 50, 50)
 
         # 컨테이너 생성
         self.container = QtWidgets.QWidget(self)
@@ -34,12 +32,12 @@ class MainWindow(QtWidgets.QWidget):
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
         effect = QtWidgets.QGraphicsDropShadowEffect()
-        self.window_layout.setContentsMargins(50, 50, 50, 50)
         effect.setOffset(0, 0)
         effect.setBlurRadius(50)
         effect.setColor(QtGui.QColor(0, 0, 0, 212))
         self.container.setGraphicsEffect(effect)
-        self.layout.addWidget(topbar.TopBar(self))
+        self.topbar = topbar.TopBar(self)
+        self.layout.addWidget(self.topbar)
         # 현재 View 설정
         self.setView(view_type.HOME_VIEW)
         self.window_layout.addWidget(self.container)
@@ -48,8 +46,10 @@ class MainWindow(QtWidgets.QWidget):
         new_widget = None
         if type == view_type.HOME_VIEW:
             new_widget = home_view.HomeView(self)
+            self.topbar.remove_home_btn()
         elif type == view_type.TIME_TABLE_VIEW:
             new_widget = time_table_view.TimeTableView(self)
+            self.topbar.create_home_btn()
         # elif type == view_type.TODO_LIST_VIEW:
         #     new_widget = time_table_view.TimeTableView(widget)
         # elif type == view_type.TIME_TABLE_VIEW:
@@ -59,6 +59,7 @@ class MainWindow(QtWidgets.QWidget):
             self.current_widget.deleteLater()
         self.current_widget = new_widget
         self.layout.addWidget(self.current_widget)
+
 if __name__ == "__main__":
     # App ID 설정
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(config.APP_ID)

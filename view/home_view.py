@@ -4,6 +4,7 @@ import webbrowser
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import main, time_table_view, view_type, config
+from component import custom_widget
 
 class HomeView(QtWidgets.QWidget):
     """메인 윈도우"""
@@ -25,6 +26,7 @@ class HomeView(QtWidgets.QWidget):
         container = QtWidgets.QWidget(self)
         # 컨테이너 레이아웃 생성
         layout = QtWidgets.QVBoxLayout(container)
+        layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         
@@ -43,10 +45,9 @@ class HomeView(QtWidgets.QWidget):
         author_label.setStyleSheet('font: 700 16px; color: #59EAB3')
         author_label.setAlignment(QtCore.Qt.AlignCenter)
         # Github 버튼 생성
-        github_button = CustomButton("")
+        github_button = custom_widget.HoverButton("")
         github_button.setImage("github_icon", 24)
         github_button.clicked.connect(lambda: webbrowser.open('https://github.com/lolmc00'))
-        github_button.setStyleSheet('border: 0px; color: #dddddd')
         author_hbox.addWidget(author_label)
         author_hbox.addWidget(github_button)
         layout.addLayout(author_hbox)
@@ -81,27 +82,6 @@ class HomeView(QtWidgets.QWidget):
         layout.addLayout(button_vbox)
         layout.addStretch(2)
         window_layout.addWidget(container)
-
-class CustomButton(QtWidgets.QPushButton):
-    def __init__(self, *args, **kwargs):
-        QtWidgets.QPushButton.__init__(self, *args, **kwargs)
-
-    def setImage(self, image_name, image_size):
-        self.image_name = image_name
-        self.image_size = image_size
-        icon = QtGui.QIcon(os.path.join(config.IMAGE_PATH, self.image_name + ".png"))
-        self.setIcon(icon)
-        self.setIconSize(QtCore.QSize(self.image_size, self.image_size))
-
-    def enterEvent(self, event):
-        icon = QtGui.QIcon(os.path.join(config.IMAGE_PATH, self.image_name + "_hover.png"))
-        self.setIcon(icon)
-        self.setIconSize(QtCore.QSize(self.image_size, self.image_size))
-
-    def leaveEvent(self, event):
-        icon = QtGui.QIcon(os.path.join(config.IMAGE_PATH, self.image_name + ".png"))
-        self.setIcon(icon)
-        self.setIconSize(QtCore.QSize(self.image_size, self.image_size))
 
 class MenuButton(QtWidgets.QWidget):
     qss = """
