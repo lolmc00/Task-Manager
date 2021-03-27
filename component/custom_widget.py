@@ -11,6 +11,8 @@ class HoverButton(QtWidgets.QPushButton):
 	def setImage(self, image_name, image_size=24):
 		self.image_name = image_name
 		self.image_size = image_size
+		self.setFixedHeight(image_size)
+		self.setFixedWidth(image_size)
 		icon = QtGui.QIcon(os.path.join(config.IMAGE_PATH, self.image_name + ".png"))
 		self.setIcon(icon)
 		self.setIconSize(QtCore.QSize(self.image_size, self.image_size))

@@ -12,8 +12,7 @@ class HomeView(QtWidgets.QWidget):
         super().__init__(parent)
         self.parent = parent
         # 메인 윈도우 설정
-        self.parent.setFixedHeight(650)
-        self.parent.setFixedWidth(500)
+        self.parent.setSize(515, 400)
         self.parent.setWindowTitle("Task Manager")
 
         # 전체 레이아웃 생성
@@ -39,11 +38,13 @@ class HomeView(QtWidgets.QWidget):
         # Author 버튼 + Github 버튼 컨테이너 Hbox 생성
         author_hbox = QtWidgets.QHBoxLayout()
         author_hbox.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        author_hbox.setSpacing(6)
+        author_hbox.setSpacing(7)
+
         # author 레이블 생성
-        author_label = QtWidgets.QLabel("By " + config.AUTHOR, self)
+        author_label = QtWidgets.QLabel("By " + config.AUTHOR)
         author_label.setStyleSheet('font: 700 16px; color: #59EAB3')
         author_label.setAlignment(QtCore.Qt.AlignCenter)
+
         # Github 버튼 생성
         github_button = custom_widget.HoverButton("")
         github_button.setImage("github_icon", 24)
@@ -61,14 +62,14 @@ class HomeView(QtWidgets.QWidget):
         # Weekly Time Table 메뉴 버튼 생성
         timetable_widget = MenuButton(self, self.parent)
         timetable_widget.setImage("timetable_icon")
-        timetable_widget.setTitle("Weekly Timetable")
-        timetable_widget.setDescription("Set a recurring weekly timetable")
+        timetable_widget.setTitle("Weekly Planner")
+        timetable_widget.setDescription("Set weekly planner")
         timetable_widget.setViewType(view_type.TIME_TABLE_VIEW)
         # To do List 메뉴 버튼 생성
         todolist_widget = MenuButton(self, self.parent)
         todolist_widget.setImage("todolist_icon")
         todolist_widget.setTitle("To-do List")
-        todolist_widget.setDescription("Make a to-do list on a calendar")
+        todolist_widget.setDescription("Make a to-do list on calendar")
         todolist_widget.setViewType(view_type.TODO_LIST_VIEW)
         # Display Current Tasks 메뉴 버튼 생성
         display_widget = MenuButton(self, self.parent)
