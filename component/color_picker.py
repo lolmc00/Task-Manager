@@ -21,7 +21,7 @@ class ColorItemBox(QtWidgets.QWidget):
 			self.setContentsMargins(0, 0, 0, 0)
 
 		def mouseReleaseEvent(self, event):
-			self.parent.onColorItemSelected(self.idx)
+			self.parent.selectColorItem(self.color)
 
 		def toggleOn(self):
 			self.setStyleSheet("background-color:%s; border: 2px solid #fff" % self.color)
@@ -60,9 +60,13 @@ class ColorItemBox(QtWidgets.QWidget):
 		self.selected_color_item_idx = 0
 		self.color_item_list[self.selected_color_item_idx].toggleOn()
 
-	def onColorItemSelected(self, idx:int):
+	def selectColorItem(self, color:str):
+		idx = colors.COLORS.index(color)
 		origin_selected_item = self.color_item_list[self.selected_color_item_idx]
 		origin_selected_item.toggleOff()
 		self.selected_color_item_idx = idx
 		selectedColorItem = self.color_item_list[self.selected_color_item_idx]
 		selectedColorItem.toggleOn()
+	
+	def getCurrentColorItem(self):
+		return self.color_item_list[self.selected_color_item_idx]

@@ -4,15 +4,17 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from module import custom_date, colors
+from component import custom_widget
 
 class ScheduleListBox(QtWidgets.QWidget):
     class ScheduleItem(QtWidgets.QWidget):
         def __init__(self, parent=None):
             super().__init__(parent)
 
-    class PeriodItem(ScheduleItem):
-        def __init__(self, parent=None, period:custom_date.Period = None):
+    class ScheduleTimeItem(ScheduleItem):
+        def __init__(self, parent=None, schedule_time:custom_date.DayScheduleTime = None):
             super().__init__(parent)
+            self.schedule_time = schedule_time
             self.setFixedHeight(44)
             self.setAttribute(QtCore.Qt.WA_StyledBackground)
             self.setObjectName("container")
@@ -23,18 +25,28 @@ class ScheduleListBox(QtWidgets.QWidget):
 
             # 상단 요일, 도구 컨테이너
             self.widget_top = QtWidgets.QWidget(self)
+            self.widget_top.setFixedHeight(26)
             self.widget_top.setObjectName("widget_top")
             self.widget_top.setAttribute(QtCore.Qt.WA_StyledBackground)
             self.widget_top.setStyleSheet("background-color:#448aff")
             self.layout_top = QtWidgets.QHBoxLayout(self.widget_top)
-            self.layout_top.setContentsMargins(5,0,0,5)
-            self.layout_top.setSpacing(0)
+            self.layout_top.setContentsMargins(5,0,0,7)
+            self.layout_top.setSpacing(5)
             self.layout.addWidget(self.widget_top)
 
             # 요일 라벨
-            self.label_day_of_the_week = QtWidgets.QLabel(period.getDayOfTheWeek())
+            self.label_day_of_the_week = QtWidgets.QLabel(schedule_time.getDayOfTheWeek())
             self.label_day_of_the_week.setStyleSheet("font: 600 15px;")
             self.layout_top.addWidget(self.label_day_of_the_week)
+
+            self.layout_top.addStretch(1)
+
+            # 수정 버튼
+            self.btn_edit = custom_widget.HoverButton("edit", 20)
+            self.layout_top.addWidget(self.btn_edit)
+            # 삭제 버튼
+            self.btn_remove = custom_widget.HoverButton("remove", 20)
+            self.layout_top.addWidget(self.btn_remove)
 
             # 컨텐츠 컨테이너
             self.widget_contents = QtWidgets.QWidget(self)
@@ -44,9 +56,10 @@ class ScheduleListBox(QtWidgets.QWidget):
             self.layout.addWidget(self.widget_contents)
 
             # 시작 시간, 끝 시간 레이블
-            self.label_time_period = QtWidgets.QLabel(period.getStartFullTime() + " ~ " + period.getEndFullTime())
-            self.label_time_period.setStyleSheet("font: 500 15px; color:#666")
-            self.layout_contents.addWidget(self.label_time_period)
+            self.label_time_schedule_time = QtWidgets.QLabel("%s:%s ~ %s:%s" % (schedule_time.getStartTimeString(), schedule_time.getStartTimeMinuteString(), \
+                schedule_time.getEndTimeString(), schedule_time.getEndTimeMinuteString()))
+            self.label_time_schedule_time.setStyleSheet("font: 500 15px; color:#666")
+            self.layout_contents.addWidget(self.label_time_schedule_time)
 
 
     class TaskItem(ScheduleItem):
@@ -95,3 +108,17 @@ class ScheduleListBox(QtWidgets.QWidget):
     def removeItem(self, item: ScheduleItem):
         self.layout_schedule_list.removeWidget(item)
         
+    def setScheduleItem(self, schedule_time_list:[custom_date.DayScheduleTime]):
+        QtWidgets.QWidget().setLayout(self.widget_schedule_list.layout())
+        self.layout_schedule_list = QtWidgets.QVBoxLayout(self.widget_schedule_list)
+        self.layout_schedule_list.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.layout_schedule_list.setContentsMargins(0,0,0,0)
+        self.layout_schedule_list.setSpacing(1)
+        for schedule_time in schedule_time_list:
+            self.layout_schedule_list.addWidget(ScheduleListBox.ScheduleTimeItem(schedule_time=schedule_time))
+
+    def getScheduleTimeList(self):
+        schedule_time_list = []
+        for i in range(self.layout_schedule_list.count()):
+            schedule_time_list.append(self.layout_schedule_list.itemAt(i).widget().schedule_time)
+        return schedule_time_list

@@ -13,7 +13,9 @@ class MainWindow(QtWidgets.QWidget):
     """메인 윈도우"""
     def __init__(self, parent=None):
         super().__init__(parent)
-
+        self.setWindowTitle("Task Manager")
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         # 전체 레이아웃 생성
         self.window_layout = QtWidgets.QVBoxLayout(self)
         self.window_layout.setContentsMargins(50, 50, 50, 50)
@@ -24,48 +26,88 @@ class MainWindow(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout(self.container)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
-
-        self.container.setStyleSheet('color: #ffffff; background: %s; font-family: "Segoe UI";  border-radius: 0px;' % colors.COLOR_BACKGROUND)
-        self.setWindowTitle("Task Manager")
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-
+        self.container.setStyleSheet('color: #ffffff; background: %s; font-family: Segoe UI, Spoqa Han Sans Neo;border-radius: 0px;' % colors.COLOR_BACKGROUND)
+        # 컨테이너 외곽 그림자 효과
         effect = QtWidgets.QGraphicsDropShadowEffect()
         effect.setOffset(0, 0)
         effect.setBlurRadius(50)
         effect.setColor(QtGui.QColor(0, 0, 0, 212))
         self.container.setGraphicsEffect(effect)
+
+        # Top bar 생성
         self.topbar = topbar.TopBar(self)
         self.layout.addWidget(self.topbar)
+
+        # View Container 생성
+        self.container_view = QtWidgets.QStackedWidget(self.container)
+        self.layout.addWidget(self.container_view)
+
+        # View 인스턴스 생성
+        self.home_view = home_view.HomeView(main=self)
+        self.time_table_view = time_table_view.TimeTableView(main=self)
+        self.container_view.addWidget(self.home_view)
+        self.container_view.addWidget(self.time_table_view)
+        
+        # ToolTip 생성
+        self.toolTip = QtWidgets.QWidget(self)
+        self.toolTip.setFixedWidth(220)
+        self.toolTip.setObjectName("toolTip")
+        self.toolTip.setStyleSheet("QWidget#toolTip{background-color: rgba(0, 0, 0, 170)}")
+        self.toolTip.hide()
+
         # 현재 View 설정
         self.setView(view_type.HOME_VIEW)
         self.window_layout.addWidget(self.container)
 
-    def setView(self, type):
-        current_widget = self.findChild(QtWidgets.QWidget, "current_view")
-        if type == view_type.HOME_VIEW:
-            new_widget = home_view.HomeView(self)
-            self.topbar.remove_home_btn()
-        elif type == view_type.TIME_TABLE_VIEW:
-            new_widget = time_table_view.TimeTableView(self)
-            self.topbar.create_home_btn()
-        elif type == view_type.TODO_LIST_VIEW:
-            new_widget = time_table_view.TimeTableView(self)
-            self.topbar.create_home_btn()
-        elif type == view_type.TIME_TABLE_VIEW:
-            new_widget = time_table_view.TimeTableView(self)
-            self.topbar.create_home_btn()
-        new_widget.setObjectName("current_view")
-        if current_widget != None:
-            self.layout.replaceWidget(current_widget, new_widget)
-            current_widget.deleteLater()
-        else:
-            self.layout.addWidget(new_widget)
+    def showToolTip(self, layout:[QtWidgets.QVBoxLayout]):
+        n = len(layout)
+        # self.toolTip.move(pos)
+        self.toolTip.setFixedHeight(70 * n)
+        # ToolTip layout 비우고 교체하기
+        if self.toolTip.layout() != None:
+            QtWidgets.QWidget().setLayout(self.toolTip.layout())
+        layout_toolTip = QtWidgets.QGridLayout(self.toolTip)
+        layout_toolTip.setContentsMargins(5, 5, 5, 5)
+        # for i in range(n):
+        layout_toolTip.addLayout(layout[0], 0, 0)
+        self.toolTip.show()
 
-    def setSize(self, height:int, width: int):
+    def hideToolTip(self):
+        self.toolTip.hide()
+
+    def moveToolTip(self, x, y):
+        self.toolTip.move(x, y)
+
+    def setView(self, type):
+        if type == view_type.HOME_VIEW:
+            self.container_view.setCurrentWidget(self.home_view)
+            self.setSize(home_view.WIDTH, home_view.HEIGHT)
+            self.setWindowTitle("Task Manager")
+            self.topbar.hide_home_btn()
+        elif type == view_type.TIME_TABLE_VIEW:
+            self.container_view.setCurrentWidget(self.time_table_view)
+            self.setSize(time_table_view.WIDTH, time_table_view.HEIGHT)
+            self.setWindowTitle("Task Manager - Time Table")
+            self.topbar.show_home_btn()
+        elif type == view_type.TODO_LIST_VIEW:
+            self.container_view.setCurrentWidget(self.time_table_view)
+            self.topbar.show_home_btn()
+        elif type == view_type.TIME_TABLE_VIEW:
+            self.container_view.setCurrentWidget(self.time_table_view)
+            self.topbar.show_home_btn()
+
+    def setSize(self, width: int, height:int):
+        temp = QtWidgets.QWidget()
         # Margin값으로 빼진만큼 더해줌, Height는 상단 도구바 높이 추가로 더해줌
-        self.setFixedHeight(height + 100 + self.topbar.bar_height)
-        self.setFixedWidth(width + 100)
+        temp.setFixedSize(width + 100, height + 100 + self.topbar.bar_height)
+        # 화면 가운데로 옮기기
+        frameGm = temp.frameGeometry()
+        screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
+        centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
+        frameGm.moveCenter(centerPoint)
+        temp.move(frameGm.topLeft())
+        self.move(frameGm.topLeft())
+        self.setFixedSize(temp.size())
 
 if __name__ == "__main__":
     # App ID 설정
@@ -75,7 +117,13 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     app_icon = QtGui.QIcon(os.path.join(config.ROOT_PATH, "image", "icon.png"))
     app.setWindowIcon(app_icon)
+    extra = {
+        # Font
+        'font-family': "Segoe UI, Spoqa Han Sans Neo",
+        'text-transform': 'none'
+    }
     apply_stylesheet(app, theme='dark_blue.xml')
+
     # Window 생성
     window = MainWindow()
     window.show()

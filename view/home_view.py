@@ -6,15 +6,15 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import main, time_table_view, view_type, config
 from component import custom_widget
 
+WIDTH = 400
+HEIGHT = 515
+
 class HomeView(QtWidgets.QWidget):
     """메인 윈도우"""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.parent = parent
-        # 메인 윈도우 설정
-        self.parent.setSize(515, 400)
-        self.parent.setWindowTitle("Task Manager")
-
+    def __init__(self, main=None):
+        super().__init__(None)
+        self.main = main
+        self.setFixedSize(WIDTH, HEIGHT)
         # 전체 레이아웃 생성
         window_layout = QtWidgets.QVBoxLayout(self)
         window_layout.setContentsMargins(0, 0, 0, 0)
@@ -46,8 +46,7 @@ class HomeView(QtWidgets.QWidget):
         author_label.setAlignment(QtCore.Qt.AlignCenter)
 
         # Github 버튼 생성
-        github_button = custom_widget.HoverButton("")
-        github_button.setImage("github_icon", 24)
+        github_button = custom_widget.HoverButton("github_icon", 32)
         github_button.clicked.connect(lambda: webbrowser.open('https://github.com/lolmc00'))
         author_hbox.addWidget(author_label)
         author_hbox.addWidget(github_button)
@@ -60,19 +59,19 @@ class HomeView(QtWidgets.QWidget):
         button_vbox.setContentsMargins(20, 0, 20, 20)
         button_vbox.setSpacing(20)
         # Weekly Time Table 메뉴 버튼 생성
-        timetable_widget = MenuButton(self, self.parent)
+        timetable_widget = MenuButton(self, self.main)
         timetable_widget.setImage("timetable_icon")
-        timetable_widget.setTitle("Weekly Planner")
+        timetable_widget.setTitle("Weekly planner")
         timetable_widget.setDescription("Set weekly planner")
         timetable_widget.setViewType(view_type.TIME_TABLE_VIEW)
         # To do List 메뉴 버튼 생성
-        todolist_widget = MenuButton(self, self.parent)
+        todolist_widget = MenuButton(self, self.main)
         todolist_widget.setImage("todolist_icon")
         todolist_widget.setTitle("To-do List")
         todolist_widget.setDescription("Make a to-do list on calendar")
         todolist_widget.setViewType(view_type.TODO_LIST_VIEW)
         # Display Current Tasks 메뉴 버튼 생성
-        display_widget = MenuButton(self, self.parent)
+        display_widget = MenuButton(self, self.main)
         display_widget.setImage("display_icon")
         display_widget.setTitle("Display Current Tasks")
         display_widget.setDescription("Display current tasks as a PIP window")
@@ -93,7 +92,7 @@ class MenuButton(QtWidgets.QWidget):
             background-color:rgba(16,16,16,255)
         }
     """
-    def __init__(self, parent=None, main=None):
+    def __init__(self, parent:QtWidgets.QWidget=None, main:QtWidgets.QWidget=None):
         super().__init__(parent)
         self.parent = parent
         self.main = main
@@ -113,9 +112,9 @@ class MenuButton(QtWidgets.QWidget):
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.setSpacing(0)
         self.title_label = QtWidgets.QLabel("Title")
-        self.title_label.setStyleSheet("font: 600 25px")
+        self.title_label.setStyleSheet("font: 600 25px Segoe UI")
         self.description_label = QtWidgets.QLabel("description")
-        self.description_label.setStyleSheet("font: 400 14px")
+        self.description_label.setStyleSheet("font: 400 14px Segoe UI")
         vlayout.addWidget(self.title_label)
         vlayout.addWidget(self.description_label)
         hlayout.addLayout(vlayout)

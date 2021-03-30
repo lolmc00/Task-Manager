@@ -3,6 +3,8 @@ import sys
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
+from module import custom_date
+
 
 class TimeSettingWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, label=None):
@@ -43,16 +45,22 @@ class TimeSettingWidget(QtWidgets.QWidget):
             self.combo_minute.addItem(("0" if i < 10 else "") + str(i))
         self.layout_time_combo_container.addWidget(self.combo_minute)
 
-class TimePeriodWidget(QtWidgets.QWidget):
+class ScheduleTimeSettingWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 		# 전체 레이아웃
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.widget_start_time = TimeSettingWidget(self, "From")
+        self.widget_start_time = TimeSettingWidget(self, "Start")
         self.layout.addWidget(self.widget_start_time)
-        self.widget_end_time = TimeSettingWidget(self, "To")
+        self.widget_end_time = TimeSettingWidget(self, "End")
         self.layout.addWidget(self.widget_end_time)
+
+    def setCurrentTime(self, schedule_time:custom_date.DayScheduleTime):
+        self.widget_start_time.combo_time.setCurrentIndex(schedule_time.getStartTime())
+        self.widget_start_time.combo_minute.setCurrentIndex(schedule_time.getStartTimeMinute())
+        self.widget_end_time.combo_time.setCurrentIndex(schedule_time.getEndTime())
+        self.widget_end_time.combo_minute.setCurrentIndex(schedule_time.getEndTimeMinute())
 
     def getCurrentStartTime(self):
         return self.widget_start_time.combo_time.currentText()
