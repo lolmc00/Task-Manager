@@ -9,6 +9,7 @@ from . import custom_widget, tooltip
 from module import custom_date, colors, data, task
 
 CELL_HEIGHT = 33
+CELL_WIDTH = 125
 
 class TimeTableScheduleItem(tooltip.ToolTipWidget):
     def __init__(self, parent:QtWidgets.QWidget=None, title:str="New Schedule", color:str=colors.COLOR_AQUA, schedule:task.Schedule=None, schedule_time:custom_date.DayScheduleTime=None, table:QtWidgets.QWidget=None):
@@ -36,6 +37,7 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
         self.title_label = custom_widget.MultipleLineLabel(self, self.title, parent.geometry())
         self.title_label.setMouseTracking(True)
         self.title_label.mouseMoveEvent = lambda event: self.mouseMoveEvent(event)
+        self.title_label.mouseReleaseEvent = lambda event : self.table.editSchedule(self.schedule)
         self.layout.addWidget(self.title_label)
 
     def setGeometryByTime(self):
@@ -51,12 +53,6 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
 
     def mouseReleaseEvent(self, event):
         self.table.editSchedule(self.schedule)
-
-    # def enterEvent(self, event):
-    #     self.main.showToolTip([self.layout_tool_tip])
-    
-    # def leaveEvent(self, event):
-    #     self.main.hideToolTip()
 
 class TimeTableWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, main:main.MainWindow=None):
@@ -75,6 +71,7 @@ class TimeTableWidget(QtWidgets.QWidget):
         for i in range(1, 8):
             widget_time = QtWidgets.QWidget()
             widget_time.setContentsMargins(12, 3, 12, 3)
+            widget_time.setFixedSize(CELL_WIDTH, CELL_HEIGHT*24)
             self.widget_time_list.append(widget_time)
             self.layout.addWidget(widget_time, 2, i, 24, 1)
         
@@ -83,7 +80,7 @@ class TimeTableWidget(QtWidgets.QWidget):
         for i in range(1, 8):
             label_date = QtWidgets.QLabel(date_str_list[i - 1])
             label_date.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
-            label_date.setFixedHeight(CELL_HEIGHT)
+            label_date.setFixedSize(CELL_WIDTH, CELL_HEIGHT)
             label_date.setStyleSheet("font: 200 20px;" + ("border-right: 1px solid #fff" if i != 7 else ""))
             self.layout.addWidget(label_date, 0, i)
 
@@ -91,7 +88,7 @@ class TimeTableWidget(QtWidgets.QWidget):
         for i in range(0, 25):
             label_time = QtWidgets.QLabel("%i:00" % i if i >= 10 else "0%i:00" % i)
             label_time.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
-            label_time.setFixedHeight(CELL_HEIGHT)
+            label_time.setFixedSize(CELL_WIDTH, CELL_HEIGHT)
             label_time.setStyleSheet("font: 400 14px;" + ("border-top: 1px solid #3e3e3e; border-radius: 0px;" if i == 24 else ""))
             self.layout.addWidget(label_time, i + 2, 0)
         
@@ -99,7 +96,7 @@ class TimeTableWidget(QtWidgets.QWidget):
         for i in range(1, 8):
             label_time = QtWidgets.QLabel("")
             label_time.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            label_time.setFixedHeight(CELL_HEIGHT)
+            label_time.setFixedSize(CELL_WIDTH, CELL_HEIGHT)
             label_time.setStyleSheet("border-top: 1px solid #3e3e3e; border-radius: 0px")
             self.layout.addWidget(label_time, 26, i)
 
@@ -109,5 +106,11 @@ class TimeTableWidget(QtWidgets.QWidget):
             item = TimeTableScheduleItem(self.widget_time_list[idx], schedule.getTitle(), schedule.getColor(), schedule, schedule_time, self)
             item.show()
 
+    def deleteSchedule(self, schedule:task.Schedule):
+        for idx in range(len(self.widget_time_list)):
+            for schedule_item in self.widget_time_list[idx].children():
+                if schedule_item.schedule == schedule:
+                    schedule_item.setParent(None)
+
     def editSchedule(self, schedule:task.Schedule):
-        self.parent.widget_setting.setScheduleInput(schedule)
+        self.parent.widget_setting.openEditSchedule(schedule)

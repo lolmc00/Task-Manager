@@ -15,6 +15,9 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.layout = QtWidgets.QVBoxLayout(self)
 		self.layout.setContentsMargins(10,0,10,0)
 
+		# 현재 수정중인 스케쥴 아이템 (None == New Schedule)
+		self.current_editing_schedule = None
+
 		# 스케쥴 제목 레이블 생성
 		self.label_schedule_title = QtWidgets.QLabel("New Schedule")
 		self.label_schedule_title.setStyleSheet("font: 600 22px")
@@ -67,45 +70,75 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		# 설정한 시간 추가 버튼
 		self.btn_time_setting_add = QtWidgets.QPushButton("Add")
 		self.btn_time_setting_add.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 16px} QPushButton:hover{background-color:%s}" % (colors.COLOR_BLUE, colors.COLOR_DARK_BLUE))
-		self.btn_time_setting_add.clicked.connect(lambda: self.addTimeSetting())
+		self.btn_time_setting_add.mouseReleaseEvent = lambda event:self.addTimeSetting()
 		self.layout_time_setting.addWidget(self.btn_time_setting_add)
 
 		self.layout.addStretch(1)
 
-		# 스케쥴 생성 & 테이블 초기화 버튼 레이아웃
-		self.layout_create_reset_btn_hbox = QtWidgets.QHBoxLayout()
-		self.layout.addLayout(self.layout_create_reset_btn_hbox)
-		
+		# 버튼 컨테이너
+		self.widget_btn_container = QtWidgets.QWidget(self)
+		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
+		self.layout.addWidget(self.widget_btn_container)
+
+		self.openCreateNewSchedule()
+		# 아이템 로드
+		self.loadScheduleItem()
+
+	def loadScheduleItem(self):
+		for schedule in data.schedule_list:
+			self.parent.widget_table.addSchedule(schedule)
+
+	def openCreateNewSchedule(self):
+		QtWidgets.QWidget().setLayout(self.widget_btn_container.layout())
+		self.resetInput()
+		self.layout_create_reset_btn_hbox = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		# 스케쥴 생성 버튼
 		self.btn_create_schedule = QtWidgets.QPushButton("Create Schedule")
 		self.btn_create_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px} QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
 		self.btn_create_schedule.clicked.connect(self.createSchedule)
-		self.layout_create_reset_btn_hbox.addWidget(self.btn_create_schedule)
-
 		# 테이블 초기화 버튼
 		self.btn_reset_table = QtWidgets.QPushButton("Reset Timetable")
 		self.btn_reset_table.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_RED, colors.COLOR_DARK_RED))
+		self.layout_create_reset_btn_hbox.addWidget(self.btn_create_schedule)
 		self.layout_create_reset_btn_hbox.addWidget(self.btn_reset_table)
 
-		# 만약 Schedule 값이 들어왔을 경우 Edit 모드로 인식하여 Input 채움
-		if schedule != None:
-			self.loadScheduleData(schedule)
+	def openEditSchedule(self, schedule:task.Schedule):
+		if self.current_editing_schedule == schedule:
+			return
+		self.current_editing_schedule = schedule
+		self.setScheduleEditInput(schedule)
+		QtWidgets.QWidget().setLayout(self.widget_btn_container.layout())
+		self.layout_create_reset_btn_hbox = QtWidgets.QHBoxLayout(self.widget_btn_container)
+		# 스케쥴 적용 버튼
+		self.btn_apply_schedule = QtWidgets.QPushButton("Apply")
+		self.btn_apply_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_AQUA, colors.COLOR_DARK_AQUA))
+		self.btn_apply_schedule.clicked.connect(lambda:self.applySchedule(schedule))
+
+		# 스케쥴 삭제 버튼
+		self.btn_delete_schedule = QtWidgets.QPushButton("Delete")
+		self.btn_delete_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_RED, colors.COLOR_DARK_RED))
+		self.btn_delete_schedule.clicked.connect(lambda:self.deleteSchedule(schedule))
+
+		# 새로운 스케쥴 생성 버튼
+		self.btn_new_schedule = QtWidgets.QPushButton("New Schedule")
+		self.btn_new_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
+		self.btn_new_schedule.clicked.connect(lambda:self.openCreateNewSchedule)
+		self.layout_create_reset_btn_hbox.addWidget(self.btn_apply_schedule)
+		self.layout_create_reset_btn_hbox.addWidget(self.btn_delete_schedule)
+		self.layout_create_reset_btn_hbox.addWidget(self.btn_new_schedule)
+
 	def setScheduleTimeInput(self, schedule_time:custom_date.DayScheduleTime):
 		self.combo_day_of_the_week.setCurrentIndex(schedule_time.getDayOfTheWeekIndex())
 		self.widget_time_schedule.setCurrentTime(schedule_time)
 
-	def setScheduleInput(self, schedule:task.Schedule):
+	def setScheduleEditInput(self, schedule:task.Schedule):
 		self.label_schedule_title.setText("Edit Schedule")
 		self.edit_schedult_title.setText(schedule.getTitle())
 		self.widget_color_box.selectColorItem(schedule.getColor())
 		self.widget_time_list.setScheduleItem(schedule_time_list=schedule.getScheduleTimeList())
+		self.widget_time_schedule.setCurrentTime(custom_date.DayScheduleTime("Monday", "0", "0", "0", "0"))
 
-	def addTimeSetting(self):
-		scheduleTime = custom_date.DayScheduleTime(self.combo_day_of_the_week.currentText(), self.widget_time_schedule.getCurrentStartTime(), \
-			self.widget_time_schedule.getCurrentStartMinute(), self.widget_time_schedule.getCurrentEndTime(), self.widget_time_schedule.getCurrentEndMinute())
-		self.widget_time_list.addItem(self.widget_time_list.ScheduleTimeItem(self, scheduleTime))
-
-	def createSchedule(self, event):
+	def createSchedule(self):
 		title = self.edit_schedult_title.text()
 		color = self.widget_color_box.getCurrentColorItem().color
 		schedule_time_list = self.widget_time_list.getScheduleTimeList()
@@ -113,3 +146,47 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		data.schedule_list.append(schedule)
 		data.save()
 		self.parent.widget_table.addSchedule(schedule)
+		self.resetInput()
+
+	def resetInput(self):
+		self.edit_schedult_title.setText("")
+		self.widget_color_box.selectColorItem(colors.COLOR_GREEN)
+		self.widget_time_list.setScheduleItem([])
+		self.resetTimeSettingInput()
+
+	def resetTimeSettingInput(self):
+		self.combo_day_of_the_week.setCurrentIndex(0)
+		self.widget_time_schedule.setCurrentTime(custom_date.DayScheduleTime("Monday", "0", "0", "0", "0"))
+		self.btn_time_setting_add.setText("Add")
+		self.btn_time_setting_add.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 16px} QPushButton:hover{background-color:%s}" % (colors.COLOR_BLUE, colors.COLOR_DARK_BLUE))
+		self.btn_time_setting_add.mouseReleaseEvent = lambda event:self.addTimeSetting()
+
+	def deleteSchedule(self, schedule:task.Schedule):
+		self.parent.widget_table.deleteSchedule(schedule)
+		self.openCreateNewSchedule()
+
+	def applySchedule(self, schedule:task.Schedule):
+		self.parent.widget_table.deleteSchedule(schedule)
+		self.createSchedule()
+		self.openCreateNewSchedule()
+
+	def addTimeSetting(self):
+		scheduleTime = custom_date.DayScheduleTime(self.combo_day_of_the_week.currentText(), self.widget_time_schedule.getCurrentStartTime(), \
+			self.widget_time_schedule.getCurrentStartMinute(), self.widget_time_schedule.getCurrentEndTime(), self.widget_time_schedule.getCurrentEndMinute())
+		self.widget_time_list.addItem(scheduleTime)
+		self.resetTimeSettingInput()
+	
+	def editTimeSetting(self, schedule_time:custom_date.DayScheduleTime):
+		self.setScheduleTimeInput(schedule_time)
+		self.btn_time_setting_add.setText("Edit")
+		self.btn_time_setting_add.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 16px} QPushButton:hover{background-color:%s}" % (colors.COLOR_PINK, colors.COLOR_PINK))
+		self.btn_time_setting_add.mouseReleaseEvent = lambda event:self.applyTimeSetting()
+		
+	def applyTimeSetting(self):
+		self.btn_time_setting_add.setText("Add")
+		scheduleTime = custom_date.DayScheduleTime(self.combo_day_of_the_week.currentText(), self.widget_time_schedule.getCurrentStartTime(), \
+			self.widget_time_schedule.getCurrentStartMinute(), self.widget_time_schedule.getCurrentEndTime(), self.widget_time_schedule.getCurrentEndMinute())
+		self.widget_time_list.applyItem(scheduleTime)
+		self.btn_time_setting_add.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 16px} QPushButton:hover{background-color:%s}" % (colors.COLOR_BLUE, colors.COLOR_DARK_BLUE))
+		self.btn_time_setting_add.mouseReleaseEvent = lambda event:self.addTimeSetting()
+		self.resetTimeSettingInput()

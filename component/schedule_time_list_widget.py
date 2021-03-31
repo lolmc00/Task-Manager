@@ -14,6 +14,7 @@ class ScheduleListBox(QtWidgets.QWidget):
     class ScheduleTimeItem(ScheduleItem):
         def __init__(self, parent=None, schedule_time:custom_date.DayScheduleTime = None):
             super().__init__(parent)
+            self.parent = parent
             self.schedule_time = schedule_time
             self.setFixedHeight(44)
             self.setAttribute(QtCore.Qt.WA_StyledBackground)
@@ -43,9 +44,12 @@ class ScheduleListBox(QtWidgets.QWidget):
 
             # 수정 버튼
             self.btn_edit = custom_widget.HoverButton("edit", 20)
+            self.btn_edit.clicked.connect(lambda: self.edit())
             self.layout_top.addWidget(self.btn_edit)
+
             # 삭제 버튼
             self.btn_remove = custom_widget.HoverButton("remove", 20)
+            self.btn_remove.clicked.connect(lambda: self.delete())
             self.layout_top.addWidget(self.btn_remove)
 
             # 컨텐츠 컨테이너
@@ -61,6 +65,20 @@ class ScheduleListBox(QtWidgets.QWidget):
             self.label_time_schedule_time.setStyleSheet("font: 500 15px; color:#666")
             self.layout_contents.addWidget(self.label_time_schedule_time)
 
+        def delete(self):
+            self.parent.removeItem(self)
+        
+        def edit(self):
+            self.setStyleSheet("QWidget#container{border:1px solid %s}" % colors.COLOR_DARK_PINK)
+            self.widget_top.setStyleSheet("background-color:%s" % colors.COLOR_DARK_PINK)
+            self.parent.editItem(self)
+
+        def apply(self, schedule_time:custom_date.DayScheduleTime):
+            self.setStyleSheet("QWidget#container{border:1px solid %s}" % colors.COLOR_DARK_BLUE)
+            self.widget_top.setStyleSheet("background-color:%s" % colors.COLOR_DARK_BLUE)
+            self.label_day_of_the_week.setText(schedule_time.getDayOfTheWeek())
+            self.label_time_schedule_time.setText("%s:%s ~ %s:%s" % (schedule_time.getStartTimeString(), schedule_time.getStartTimeMinuteString(), \
+                            schedule_time.getEndTimeString(), schedule_time.getEndTimeMinuteString()))
 
     class TaskItem(ScheduleItem):
         def __init__(self):
@@ -102,12 +120,22 @@ class ScheduleListBox(QtWidgets.QWidget):
         self.scroll_schedule_list.setWidget(self.widget_schedule_list)
         self.layout_schedule_list_container.addWidget(self.scroll_schedule_list)
 
-    def addItem(self, item: ScheduleItem):
-        self.layout_schedule_list.addWidget(item)
+
+    def addItem(self, time:custom_date.DayScheduleTime):
+        self.layout_schedule_list.addWidget(ScheduleListBox.ScheduleTimeItem(self, time))
         
     def removeItem(self, item: ScheduleItem):
         self.layout_schedule_list.removeWidget(item)
+        item.setParent(None)
+
+    def editItem(self, item: ScheduleItem):
+        self.current_editing_item = item
+        self.parent().editTimeSetting(item.schedule_time)
         
+    def applyItem(self, schedule_time:custom_date.DayScheduleTime):
+        self.current_editing_item.apply(schedule_time)
+        self.current_editing_item = None
+
     def setScheduleItem(self, schedule_time_list:[custom_date.DayScheduleTime]):
         QtWidgets.QWidget().setLayout(self.widget_schedule_list.layout())
         self.layout_schedule_list = QtWidgets.QVBoxLayout(self.widget_schedule_list)

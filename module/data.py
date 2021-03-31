@@ -5,9 +5,12 @@ from . import task
 schedule_list:List[task.Schedule] = []
 
 def load():
-	with open('load.data', 'rb') as file:
-		global schedule_list
-		schedule_list = dill.load(file)
+	try:
+		with open('save.data', 'rb') as file:
+			global schedule_list
+			schedule_list = dill.load(file)
+	except FileNotFoundError:
+		return
 
 def save():
 	with open('save.data', 'wb') as file:

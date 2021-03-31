@@ -51,8 +51,8 @@ class ColorItemBox(QtWidgets.QWidget):
 		# Grid 채우고 리스트에 아이템 저장
 		self.color_item_list = []
 		for y in range(2):
-			for x in range(8):
-				color_item = self.ColorItem(self, color=colors.COLORS[y*8+x], idx=y*8+x)
+			for x in range(7):
+				color_item = self.ColorItem(self, color=colors.COLORS[y*7+x], idx=y*7+x)
 				self.color_item_list.append(color_item)
 				self.layout_color_box.addWidget(color_item, y, x)
 			
@@ -62,8 +62,9 @@ class ColorItemBox(QtWidgets.QWidget):
 
 	def selectColorItem(self, color:str):
 		idx = colors.COLORS.index(color)
-		origin_selected_item = self.color_item_list[self.selected_color_item_idx]
-		origin_selected_item.toggleOff()
+		if self.selected_color_item_idx != None:
+			origin_selected_item = self.color_item_list[self.selected_color_item_idx]
+			origin_selected_item.toggleOff()
 		self.selected_color_item_idx = idx
 		selectedColorItem = self.color_item_list[self.selected_color_item_idx]
 		selectedColorItem.toggleOn()

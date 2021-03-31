@@ -5,7 +5,7 @@ import ctypes
 from PyQt5 import QtWidgets, QtGui, QtCore
 import home_view, time_table_view, view_type
 from component import topbar
-from module import colors
+from module import colors, data
 import config
 from qt_material import apply_stylesheet
 
@@ -110,6 +110,9 @@ class MainWindow(QtWidgets.QWidget):
         self.setFixedSize(temp.size())
 
 if __name__ == "__main__":
+    # 데이터 로드
+    data.load()
+
     # App ID 설정
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(config.APP_ID)
 

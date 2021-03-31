@@ -53,7 +53,6 @@ class MultipleLineLabel(QtWidgets.QLabel):
 		text_list.append(text[prev_pos:len(text)])
 		text_list.append("</span>")
 		self.setText(''.join(text_list))
-		print(self.text())
 
 class HoverButton(QtWidgets.QToolButton):
 	def __init__(self, image_name=None, image_size=24):
