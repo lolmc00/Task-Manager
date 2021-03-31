@@ -49,5 +49,15 @@ class DayScheduleTime():
 
     def getStartTimeToMinute(self):
         return self.start_time * 60 + self.start_time_minute
+
     def getEndTimeToMinute(self):
         return self.end_time * 60 + self.end_time_minute
+    
+    def getSortKey(self):
+        return self.getDayOfTheWeekIndex() * 24 * 60 + self.getStartTimeToMinute()
+
+    def checkConflict(self, other):
+        if self.day_of_the_week == other.getDayOfTheWeek():
+           return (self.getStartTimeToMinute() < other.getEndTimeToMinute()) and (self.getEndTimeToMinute() > other.getStartTimeToMinute())
+        return False
+                

@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from component import schedule_time_setting_widget, schedule_time_list_widget, color_picker
 from module import custom_date, colors, data, task
+import threading
 
 class ScheduleInputWidget(QtWidgets.QWidget):
 	def __init__(self, parent=None, schedule:task.Schedule=None):
@@ -80,7 +81,9 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		self.layout.addWidget(self.widget_btn_container)
 
+		# 스케쥴 생성 UI로 열기
 		self.openCreateNewSchedule()
+
 		# 아이템 로드
 		self.loadScheduleItem()
 
@@ -91,7 +94,10 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 	def openCreateNewSchedule(self):
 		QtWidgets.QWidget().setLayout(self.widget_btn_container.layout())
 		self.resetInput()
-		self.layout_create_reset_btn_hbox = QtWidgets.QHBoxLayout(self.widget_btn_container)
+		self.parent.widget_table.resetFocusItems()
+		self.label_schedule_title.setText("New Schedule")
+		self.current_editing_schedule = None
+		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		# 스케쥴 생성 버튼
 		self.btn_create_schedule = QtWidgets.QPushButton("Create Schedule")
 		self.btn_create_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px} QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
@@ -99,8 +105,8 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		# 테이블 초기화 버튼
 		self.btn_reset_table = QtWidgets.QPushButton("Reset Timetable")
 		self.btn_reset_table.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_RED, colors.COLOR_DARK_RED))
-		self.layout_create_reset_btn_hbox.addWidget(self.btn_create_schedule)
-		self.layout_create_reset_btn_hbox.addWidget(self.btn_reset_table)
+		self.layout_btn_container.addWidget(self.btn_create_schedule)
+		self.layout_btn_container.addWidget(self.btn_reset_table)
 
 	def openEditSchedule(self, schedule:task.Schedule):
 		if self.current_editing_schedule == schedule:
@@ -108,7 +114,7 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.current_editing_schedule = schedule
 		self.setScheduleEditInput(schedule)
 		QtWidgets.QWidget().setLayout(self.widget_btn_container.layout())
-		self.layout_create_reset_btn_hbox = QtWidgets.QHBoxLayout(self.widget_btn_container)
+		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		# 스케쥴 적용 버튼
 		self.btn_apply_schedule = QtWidgets.QPushButton("Apply")
 		self.btn_apply_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_AQUA, colors.COLOR_DARK_AQUA))
@@ -122,10 +128,10 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		# 새로운 스케쥴 생성 버튼
 		self.btn_new_schedule = QtWidgets.QPushButton("New Schedule")
 		self.btn_new_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
-		self.btn_new_schedule.clicked.connect(lambda:self.openCreateNewSchedule)
-		self.layout_create_reset_btn_hbox.addWidget(self.btn_apply_schedule)
-		self.layout_create_reset_btn_hbox.addWidget(self.btn_delete_schedule)
-		self.layout_create_reset_btn_hbox.addWidget(self.btn_new_schedule)
+		self.btn_new_schedule.clicked.connect(lambda:self.openCreateNewSchedule())
+		self.layout_btn_container.addWidget(self.btn_apply_schedule)
+		self.layout_btn_container.addWidget(self.btn_delete_schedule)
+		self.layout_btn_container.addWidget(self.btn_new_schedule)
 
 	def setScheduleTimeInput(self, schedule_time:custom_date.DayScheduleTime):
 		self.combo_day_of_the_week.setCurrentIndex(schedule_time.getDayOfTheWeekIndex())
@@ -139,6 +145,10 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.widget_time_schedule.setCurrentTime(custom_date.DayScheduleTime("Monday", "0", "0", "0", "0"))
 
 	def createSchedule(self):
+		test_text = self.testScheduleSetting()
+		if test_text != None:
+			self.showAlertText(test_text)
+			return
 		title = self.edit_schedult_title.text()
 		color = self.widget_color_box.getCurrentColorItem().color
 		schedule_time_list = self.widget_time_list.getScheduleTimeList()
@@ -147,6 +157,16 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		data.save()
 		self.parent.widget_table.addSchedule(schedule)
 		self.resetInput()
+
+	def deleteSchedule(self, schedule:task.Schedule):
+		data.schedule_list.remove(schedule)
+		data.save()
+		self.parent.widget_table.deleteSchedule(schedule)
+		self.openCreateNewSchedule()
+
+	def applySchedule(self, schedule:task.Schedule):
+		self.createSchedule()
+		self.deleteSchedule(schedule)
 
 	def resetInput(self):
 		self.edit_schedult_title.setText("")
@@ -161,19 +181,17 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.btn_time_setting_add.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 16px} QPushButton:hover{background-color:%s}" % (colors.COLOR_BLUE, colors.COLOR_DARK_BLUE))
 		self.btn_time_setting_add.mouseReleaseEvent = lambda event:self.addTimeSetting()
 
-	def deleteSchedule(self, schedule:task.Schedule):
-		self.parent.widget_table.deleteSchedule(schedule)
-		self.openCreateNewSchedule()
-
-	def applySchedule(self, schedule:task.Schedule):
-		self.parent.widget_table.deleteSchedule(schedule)
-		self.createSchedule()
-		self.openCreateNewSchedule()
+	def getScheduleTimeInCombo(self):
+		schedule_time = custom_date.DayScheduleTime(self.combo_day_of_the_week.currentText(), self.widget_time_schedule.getCurrentStartTime(), \
+					self.widget_time_schedule.getCurrentStartMinute(), self.widget_time_schedule.getCurrentEndTime(), self.widget_time_schedule.getCurrentEndMinute())
+		return schedule_time
 
 	def addTimeSetting(self):
-		scheduleTime = custom_date.DayScheduleTime(self.combo_day_of_the_week.currentText(), self.widget_time_schedule.getCurrentStartTime(), \
-			self.widget_time_schedule.getCurrentStartMinute(), self.widget_time_schedule.getCurrentEndTime(), self.widget_time_schedule.getCurrentEndMinute())
-		self.widget_time_list.addItem(scheduleTime)
+		test_text = self.testScheduleTime()
+		if test_text != None:
+			self.showAlertText(test_text)
+			return
+		self.widget_time_list.addItem(self.getScheduleTimeInCombo())
 		self.resetTimeSettingInput()
 	
 	def editTimeSetting(self, schedule_time:custom_date.DayScheduleTime):
@@ -183,10 +201,42 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.btn_time_setting_add.mouseReleaseEvent = lambda event:self.applyTimeSetting()
 		
 	def applyTimeSetting(self):
+		test_text = self.testScheduleSetting()
+		if test_text != None:
+			self.showAlertText(test_text)
+			return
 		self.btn_time_setting_add.setText("Add")
-		scheduleTime = custom_date.DayScheduleTime(self.combo_day_of_the_week.currentText(), self.widget_time_schedule.getCurrentStartTime(), \
-			self.widget_time_schedule.getCurrentStartMinute(), self.widget_time_schedule.getCurrentEndTime(), self.widget_time_schedule.getCurrentEndMinute())
-		self.widget_time_list.applyItem(scheduleTime)
+		self.widget_time_list.applyItem(self.getScheduleTimeInCombo())
 		self.btn_time_setting_add.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 16px} QPushButton:hover{background-color:%s}" % (colors.COLOR_BLUE, colors.COLOR_DARK_BLUE))
 		self.btn_time_setting_add.mouseReleaseEvent = lambda event:self.addTimeSetting()
 		self.resetTimeSettingInput()
+
+	def showAlertText(self, text):
+		alert = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Icon.NoIcon, "Task Manager", "[ ! ] " + text, QtWidgets.QMessageBox.StandardButton.Yes)
+		alert.setStyleSheet("font: bold 13px 'Segoe UI';")
+		alert.exec()
+	
+	def testScheduleSetting(self):
+		if self.edit_schedult_title.text() == "":
+			return "Please enter schedule title."
+		if len(self.widget_time_list.getScheduleTimeList()) == 0:
+			return "Please add schedule time."
+		return None
+
+	def testScheduleTime(self):
+		schedule_time = self.getScheduleTimeInCombo()
+		if schedule_time.getStartTimeToMinute() >= schedule_time.getEndTimeToMinute():
+			return "The start time cannot be equal to or later than the end time."
+		schedule_time_list = self.widget_time_list.getScheduleTimeList()
+		# 일정 시간이 겹치는 경우 알림
+		for i in range(len(schedule_time_list) - 1):
+			if schedule_time_list[i].checkConflict(schedule_time_list[i + 1]):
+				return "The time you set overlaps with the other time."
+		
+		# 다른 스케쥴과 겹치는 시간이 있으면 알림
+		for schedule in data.schedule_list:
+			for other_schedule_time in schedule.getScheduleTimeList():
+				if schedule_time.checkConflict(other_schedule_time):
+					print(other_schedule_time.getStartTime())
+					return "The time you set overlaps with another schedule."
+		return None

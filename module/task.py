@@ -15,3 +15,10 @@ class Schedule():
 	
 	def getScheduleTimeList(self):
 		return self.schedule_time_list
+
+	def checkConflict(self, other):
+		for schedule_time in self.schedule_time_list:
+			for other_schedule_time in other.getScheduleTimeList():
+				if schedule_time.checkConflict(other_schedule_time):
+					return True
+		return False

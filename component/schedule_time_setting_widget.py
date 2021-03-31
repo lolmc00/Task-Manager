@@ -28,6 +28,7 @@ class TimeSettingWidget(QtWidgets.QWidget):
         self.combo_time = QtWidgets.QComboBox(self.widget_time_combo_container)
         self.combo_time.setStyleSheet("font: 400 15px")
         self.combo_time.setFixedWidth(123)
+        self.combo_time.currentIndexChanged.connect(self.setDisabledComboMinute)
         for i in range(0, 25):
             self.combo_time.addItem(("0" if i < 10 else "") + str(i))
         self.layout_time_combo_container.addWidget(self.combo_time)
@@ -44,6 +45,15 @@ class TimeSettingWidget(QtWidgets.QWidget):
         for i in range(0, 61):
             self.combo_minute.addItem(("0" if i < 10 else "") + str(i))
         self.layout_time_combo_container.addWidget(self.combo_minute)
+
+    def setDisabledComboMinute(self, value):
+        if hasattr(self, 'combo_minute'):
+            if value == 24:
+                self.combo_minute.setCurrentIndex(0)
+                self.combo_minute.setDisabled(True)
+            else:
+                self.combo_minute.setDisabled(False)
+
 
 class ScheduleTimeSettingWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -73,4 +83,3 @@ class ScheduleTimeSettingWidget(QtWidgets.QWidget):
 
     def getCurrentEndMinute(self):
         return self.widget_end_time.combo_minute.currentText()
-        

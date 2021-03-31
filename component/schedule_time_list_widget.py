@@ -3,7 +3,7 @@ import sys
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
-from module import custom_date, colors
+from module import custom_date, colors, data
 from component import custom_widget
 
 class ScheduleListBox(QtWidgets.QWidget):
@@ -123,7 +123,7 @@ class ScheduleListBox(QtWidgets.QWidget):
 
     def addItem(self, time:custom_date.DayScheduleTime):
         self.layout_schedule_list.addWidget(ScheduleListBox.ScheduleTimeItem(self, time))
-        
+
     def removeItem(self, item: ScheduleItem):
         self.layout_schedule_list.removeWidget(item)
         item.setParent(None)
@@ -143,10 +143,12 @@ class ScheduleListBox(QtWidgets.QWidget):
         self.layout_schedule_list.setContentsMargins(0,0,0,0)
         self.layout_schedule_list.setSpacing(1)
         for schedule_time in schedule_time_list:
-            self.layout_schedule_list.addWidget(ScheduleListBox.ScheduleTimeItem(schedule_time=schedule_time))
+            self.addItem(schedule_time)
 
-    def getScheduleTimeList(self):
+    def getScheduleTimeList(self) -> custom_date.DayScheduleTime:
         schedule_time_list = []
         for i in range(self.layout_schedule_list.count()):
             schedule_time_list.append(self.layout_schedule_list.itemAt(i).widget().schedule_time)
+        # 끝나는 시간순 정렬
+        schedule_time_list = sorted(schedule_time_list, key = lambda schedule_time: schedule_time.getSortKey())
         return schedule_time_list

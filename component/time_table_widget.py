@@ -20,13 +20,13 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
         self.schedule_time = schedule_time
         self.title = title
         self.color = color
-        super().addItem(title, schedule_time.getTimeString())
+        for schedule_time in schedule.getScheduleTimeList():
+            super().addItem(title, schedule_time, color)
         self.setObjectName("container")
-        self.setStyleSheet("QWidget{background-color:%s;} QWidget#container{border-top: %ipx solid #DEDEDE;}" % (color, min(self.geometry().height()/10, 6)))
-        self.setContentsMargins(4, 4, 2, 2)
+        self.setStyleSheet("QWidget{background-color:%s; font-family:'나눔스퀘어';} QWidget#container{border-top: 5px solid #DDDDDD;}" % (color))
+        self.setContentsMargins(4, 6, 2, 2)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_StyledBackground)
         self.setGeometryByTime()
-        self.setMouseTracking(True)
 
         # 전체 레이아웃
         self.layout = QtWidgets.QVBoxLayout(self)
@@ -34,11 +34,11 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
         self.layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
         # 일정 제목 라벨
-        self.title_label = custom_widget.MultipleLineLabel(self, self.title, parent.geometry())
-        self.title_label.setMouseTracking(True)
-        self.title_label.mouseMoveEvent = lambda event: self.mouseMoveEvent(event)
-        self.title_label.mouseReleaseEvent = lambda event : self.table.editSchedule(self.schedule)
-        self.layout.addWidget(self.title_label)
+        self.label_title = custom_widget.MultipleLineLabel(self, self.title, parent.geometry())
+        self.label_title.setMouseTracking(True)
+        self.label_title.mouseMoveEvent = lambda event: self.mouseMoveEvent(event)
+        self.label_title.mouseReleaseEvent = lambda event : self.table.editSchedule(self.schedule)
+        self.layout.addWidget(self.label_title)
 
     def setGeometryByTime(self):
         parent_height = float(self.parent.height())
@@ -53,6 +53,14 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
 
     def mouseReleaseEvent(self, event):
         self.table.editSchedule(self.schedule)
+
+    def setFocusOn(self, isFocusOn):
+        if isFocusOn:
+            self.setGraphicsEffect(None)
+        else:
+            opacity = QtWidgets.QGraphicsOpacityEffect(self)
+            opacity.setOpacity(0.1)
+            self.setGraphicsEffect(opacity)
 
 class TimeTableWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, main:main.MainWindow=None):
@@ -113,4 +121,12 @@ class TimeTableWidget(QtWidgets.QWidget):
                     schedule_item.setParent(None)
 
     def editSchedule(self, schedule:task.Schedule):
+        for idx in range(len(self.widget_time_list)):
+            for schedule_item in self.widget_time_list[idx].children():
+                schedule_item.setFocusOn(schedule_item.schedule == schedule)
         self.parent.widget_setting.openEditSchedule(schedule)
+
+    def resetFocusItems(self):
+        for idx in range(len(self.widget_time_list)):
+            for schedule_item in self.widget_time_list[idx].children():
+                schedule_item.setFocusOn(True)

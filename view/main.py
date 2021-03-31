@@ -26,7 +26,7 @@ class MainWindow(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout(self.container)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
-        self.container.setStyleSheet('color: #ffffff; background: %s; font-family: Segoe UI, Spoqa Han Sans Neo;border-radius: 0px;' % colors.COLOR_BACKGROUND)
+        self.container.setStyleSheet('color: #ffffff; background: %s; border-radius: 0px;' % colors.COLOR_BACKGROUND)
         # 컨테이너 외곽 그림자 효과
         effect = QtWidgets.QGraphicsDropShadowEffect()
         effect.setOffset(0, 0)
@@ -120,12 +120,8 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     app_icon = QtGui.QIcon(os.path.join(config.ROOT_PATH, "image", "icon.png"))
     app.setWindowIcon(app_icon)
-    extra = {
-        # Font
-        'font-family': "Segoe UI, Spoqa Han Sans Neo",
-        'text-transform': 'none'
-    }
     apply_stylesheet(app, theme='dark_blue.xml')
+    app.setStyleSheet(app.styleSheet() + "QWidget{font-family:'Segoe UI'}")
 
     # Window 생성
     window = MainWindow()
