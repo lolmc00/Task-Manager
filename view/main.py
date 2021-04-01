@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import ctypes
 from PyQt5 import QtWidgets, QtGui, QtCore
-import home_view, time_table_view, view_type
+from view import home_view, todo_list_view, time_table_view, view_type
 from component import topbar
 from module import colors, data
 import config
@@ -44,9 +44,12 @@ class MainWindow(QtWidgets.QWidget):
 
         # View 인스턴스 생성
         self.home_view = home_view.HomeView(main=self)
+        self.todo_list_view = todo_list_view.TodoListView(main=self)
         self.time_table_view = time_table_view.TimeTableView(main=self)
+        
         self.container_view.addWidget(self.home_view)
         self.container_view.addWidget(self.time_table_view)
+        self.container_view.addWidget(self.todo_list_view)
         
         # ToolTip 생성
         self.toolTip = QtWidgets.QWidget(self)
@@ -90,7 +93,9 @@ class MainWindow(QtWidgets.QWidget):
             self.setWindowTitle("Task Manager - Time Table")
             self.topbar.show_home_btn()
         elif type == view_type.TODO_LIST_VIEW:
-            self.container_view.setCurrentWidget(self.time_table_view)
+            self.container_view.setCurrentWidget(self.todo_list_view)
+            self.setSize(todo_list_view.WIDTH, todo_list_view.HEIGHT)
+            self.setWindowTitle("Task Manager - Todo List")
             self.topbar.show_home_btn()
         elif type == view_type.TIME_TABLE_VIEW:
             self.container_view.setCurrentWidget(self.time_table_view)

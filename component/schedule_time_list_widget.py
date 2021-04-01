@@ -68,17 +68,24 @@ class ScheduleListBox(QtWidgets.QWidget):
         def delete(self):
             self.parent.removeItem(self)
         
+        def cancelEdit(self):
+            self.parent.cancelEditItem()
+
         def edit(self):
-            self.setStyleSheet("QWidget#container{border:1px solid %s}" % colors.COLOR_DARK_PINK)
-            self.widget_top.setStyleSheet("background-color:%s" % colors.COLOR_DARK_PINK)
+            self.parent.cancelEditItem()
+            self.setFocusOn(True)
             self.parent.editItem(self)
 
         def apply(self, schedule_time:custom_date.DayScheduleTime):
-            self.setStyleSheet("QWidget#container{border:1px solid %s}" % colors.COLOR_DARK_BLUE)
-            self.widget_top.setStyleSheet("background-color:%s" % colors.COLOR_DARK_BLUE)
+            self.schedule_time = schedule_time
+            self.setFocusOn(False)
             self.label_day_of_the_week.setText(schedule_time.getDayOfTheWeek())
             self.label_time_schedule_time.setText("%s:%s ~ %s:%s" % (schedule_time.getStartTimeString(), schedule_time.getStartTimeMinuteString(), \
                             schedule_time.getEndTimeString(), schedule_time.getEndTimeMinuteString()))
+                        
+        def setFocusOn(self, isFocusOn):
+            self.setStyleSheet("QWidget#container{border:1px solid %s}" % (colors.COLOR_DARK_PINK if isFocusOn else colors.COLOR_DARK_BLUE))
+            self.widget_top.setStyleSheet("background-color:%s" %  (colors.COLOR_DARK_PINK if isFocusOn else colors.COLOR_DARK_BLUE))
 
     class TaskItem(ScheduleItem):
         def __init__(self):
@@ -89,6 +96,8 @@ class ScheduleListBox(QtWidgets.QWidget):
 		# 전체 레이아웃
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setContentsMargins(0,0,0,0)
+
+        self.current_editing_item = None
 
         # 리스트 박스 제목
         self.label_title = QtWidgets.QLabel(title)
@@ -127,6 +136,10 @@ class ScheduleListBox(QtWidgets.QWidget):
     def removeItem(self, item: ScheduleItem):
         self.layout_schedule_list.removeWidget(item)
         item.setParent(None)
+
+    def cancelEditItem(self):
+        if self.current_editing_item != None:
+            self.current_editing_item.setFocusOn(False)
 
     def editItem(self, item: ScheduleItem):
         self.current_editing_item = item

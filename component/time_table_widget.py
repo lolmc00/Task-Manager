@@ -4,7 +4,6 @@ import webbrowser
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
-from view import main
 from . import custom_widget, tooltip
 from module import custom_date, colors, data, task
 
@@ -63,7 +62,7 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
             self.setGraphicsEffect(opacity)
 
 class TimeTableWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, main:main.MainWindow=None):
+    def __init__(self, parent=None, main=None):
         super().__init__(parent)
         self.parent = parent
         self.main = main

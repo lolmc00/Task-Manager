@@ -66,9 +66,7 @@ class HoverButton(QtWidgets.QToolButton):
 	def enterEvent(self, event):
 		icon = QtGui.QIcon(os.path.join(config.IMAGE_PATH, self.image_name + "_hover.png"))
 		self.setIcon(icon)
-		self.setIconSize(QtCore.QSize(self.image_size, self.image_size))
 
 	def leaveEvent(self, event):
 		icon = QtGui.QIcon(os.path.join(config.IMAGE_PATH, self.image_name + ".png"))
 		self.setIcon(icon)
-		self.setIconSize(QtCore.QSize(self.image_size, self.image_size))

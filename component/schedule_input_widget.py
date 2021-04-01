@@ -25,10 +25,10 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.layout.addWidget(self.label_schedule_title)
 
 		# 스케쥴 제목 인풋 생성
-		self.edit_schedult_title = QtWidgets.QLineEdit("")
-		self.edit_schedult_title.setPlaceholderText("SCHEDULE TITLE")
-		self.edit_schedult_title.setStyleSheet("font: 400 17px")
-		self.layout.addWidget(self.edit_schedult_title)
+		self.edit_schedule_title = QtWidgets.QLineEdit("")
+		self.edit_schedule_title.setPlaceholderText("SCHEDULE TITLE")
+		self.edit_schedule_title.setStyleSheet("font: 400 17px")
+		self.layout.addWidget(self.edit_schedule_title)
 
 		self.layout.addStretch(1)
 
@@ -139,20 +139,24 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 
 	def setScheduleEditInput(self, schedule:task.Schedule):
 		self.label_schedule_title.setText("Edit Schedule")
-		self.edit_schedult_title.setText(schedule.getTitle())
+		self.edit_schedule_title.setText(schedule.getTitle())
 		self.widget_color_box.selectColorItem(schedule.getColor())
 		self.widget_time_list.setScheduleItem(schedule_time_list=schedule.getScheduleTimeList())
 		self.widget_time_schedule.setCurrentTime(custom_date.DayScheduleTime("Monday", "0", "0", "0", "0"))
 
+	def getSchedule(self):
+		title = self.edit_schedule_title.text()
+		schedule_time_list = self.widget_time_list.getScheduleTimeList()
+		color = self.widget_color_box.getCurrentColorItem().color
+		schedule = task.Schedule(title, color, schedule_time_list)
+		return schedule
+
 	def createSchedule(self):
-		test_text = self.testScheduleSetting()
+		schedule = self.getSchedule()
+		test_text = self.testScheduleSetting(schedule)
 		if test_text != None:
 			self.showAlertText(test_text)
 			return
-		title = self.edit_schedult_title.text()
-		color = self.widget_color_box.getCurrentColorItem().color
-		schedule_time_list = self.widget_time_list.getScheduleTimeList()
-		schedule = task.Schedule(title, color, schedule_time_list)
 		data.schedule_list.append(schedule)
 		data.save()
 		self.parent.widget_table.addSchedule(schedule)
@@ -169,7 +173,7 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.deleteSchedule(schedule)
 
 	def resetInput(self):
-		self.edit_schedult_title.setText("")
+		self.edit_schedule_title.setText("")
 		self.widget_color_box.selectColorItem(colors.COLOR_GREEN)
 		self.widget_time_list.setScheduleItem([])
 		self.resetTimeSettingInput()
@@ -187,7 +191,7 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		return schedule_time
 
 	def addTimeSetting(self):
-		test_text = self.testScheduleTime()
+		test_text = self.testScheduleTime(self.getSchedule())
 		if test_text != None:
 			self.showAlertText(test_text)
 			return
@@ -201,7 +205,7 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.btn_time_setting_add.mouseReleaseEvent = lambda event:self.applyTimeSetting()
 		
 	def applyTimeSetting(self):
-		test_text = self.testScheduleSetting()
+		test_text = self.testScheduleTime(self.getSchedule())
 		if test_text != None:
 			self.showAlertText(test_text)
 			return
@@ -216,18 +220,18 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		alert.setStyleSheet("font: bold 13px 'Segoe UI';")
 		alert.exec()
 	
-	def testScheduleSetting(self):
-		if self.edit_schedult_title.text() == "":
+	def testScheduleSetting(self, schedule:task.Schedule):
+		if schedule.getTitle() == "":
 			return "Please enter schedule title."
-		if len(self.widget_time_list.getScheduleTimeList()) == 0:
+		if len(schedule.getScheduleTimeList()) == 0:
 			return "Please add schedule time."
 		return None
 
-	def testScheduleTime(self):
+	def testScheduleTime(self, schedule:task.Schedule):
 		schedule_time = self.getScheduleTimeInCombo()
 		if schedule_time.getStartTimeToMinute() >= schedule_time.getEndTimeToMinute():
 			return "The start time cannot be equal to or later than the end time."
-		schedule_time_list = self.widget_time_list.getScheduleTimeList()
+		schedule_time_list = schedule.getScheduleTimeList()
 		# 일정 시간이 겹치는 경우 알림
 		for i in range(len(schedule_time_list) - 1):
 			if schedule_time_list[i].checkConflict(schedule_time_list[i + 1]):
