@@ -2,7 +2,7 @@ import os
 import sys
 import webbrowser
 from PyQt5 import QtWidgets, QtGui, QtCore
-from module import custom_date
+from module import task
 
 class ToolTipWidget(QtWidgets.QWidget):
 
@@ -12,10 +12,11 @@ class ToolTipWidget(QtWidgets.QWidget):
         self.setMouseTracking(True)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_AlwaysShowToolTips)
 
-    def addItem(self, title, time:custom_date.DayScheduleTime, color):
-        title = "<span style=\"font-weight:500; color:%s\">%s</span>" % (color, title)
-        day_of_the_week = time.getDayOfTheWeek()[:3].upper() + "."
-        text = "<div>%s<br>%s %s</div>" % (title, day_of_the_week, time.getTimeString())
+    def addItem(self, title, time:task.WeeklyScheduleTime, isFocusOn, color):
+        weight = "bold" if isFocusOn else "400"
+        title = "<span style=\"font-weight:%s; color:%s\">%s</span>" % (weight, color, title)
+        time = "<span style=\"font-weight:%s;\">%s %s</span>" % (weight, time.getDayOfTheWeek()[:3].upper() + ".", time.getTimePeriod().getTimeString())
+        text = "<div>%s<br>%s</div>" % (title, time)
         self.text_list.insert(len(self.text_list) - 1, text)
 
     def mouseMoveEvent(self, event):

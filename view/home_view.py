@@ -70,11 +70,11 @@ class HomeView(QtWidgets.QWidget):
         todolist_widget.setTitle("To-do List")
         todolist_widget.setDescription("Make a to-do list on calendar")
         todolist_widget.setViewType(view_type.TODO_LIST_VIEW)
-        # Display Current Tasks 메뉴 버튼 생성
+        # Display Current Todos 메뉴 버튼 생성
         display_widget = MenuButton(self, self.main)
         display_widget.setImage("display_icon")
-        display_widget.setTitle("Display Current Tasks")
-        display_widget.setDescription("Display current tasks as a PIP window")
+        display_widget.setTitle("Display Current Todos")
+        display_widget.setDescription("Display current Todos as a PIP window")
         display_widget.setViewType(view_type.DISPLAY_VIEW)
         button_vbox.addWidget(timetable_widget)
         button_vbox.addWidget(todolist_widget)

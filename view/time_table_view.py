@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from view import main
 from component import time_table_widget, schedule_input_widget, color_picker
-from module import custom_date, colors, data, task
+from module import task, colors, data
 
 CELL_SIZE = 33
 WIDTH = 1300

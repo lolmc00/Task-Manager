@@ -1,8 +1,82 @@
-from . import colors, custom_date
+from . import colors
 from typing import List
+from datetime import date
+
+class TimePeriod():
+	def __init__(self, start_time, start_time_minute, end_time, end_time_minute):
+		self.start_time = int(start_time)
+		self.start_time_minute = int(start_time_minute)
+		self.end_time = int(end_time)
+		self.end_time_minute = int(end_time_minute)
+
+	def getStartTime(self):
+		return self.start_time
+	def getStartTimeMinute(self):
+		return self.start_time_minute
+	def getEndTime(self):
+		return self.end_time
+	def getEndTimeMinute(self):
+		return self.end_time_minute
+
+	def getStartTimeString(self):
+		return "0" + str(self.start_time) if self.start_time < 10 else str(self.start_time)
+	def getStartTimeMinuteString(self):
+		return "0" + str(self.start_time_minute) if self.start_time_minute < 10 else str(self.start_time_minute)
+	def getEndTimeString(self):
+		return "0" + str(self.end_time) if self.end_time < 10 else str(self.end_time)
+	def getEndTimeMinuteString(self):
+		return "0" + str(self.end_time_minute) if self.end_time_minute < 10 else str(self.end_time_minute)
+
+	def getTimeString(self):
+		return "%s:%s ~ %s:%s" % (self.getStartTimeString(), self.getStartTimeMinuteString(), self.getEndTimeString(), self.getEndTimeMinuteString())
+
+	def getStartTimeToMinute(self):
+		return self.start_time * 60 + self.start_time_minute
+
+	def getEndTimeToMinute(self):
+		return self.end_time * 60 + self.end_time_minute
+
+	def getSortKey(self):
+		return self.getStartTimeToMinute()
+
+class WeeklyScheduleTime():
+    def __init__(self, day_of_the_week, time_period:TimePeriod):
+        self.day_of_the_week = day_of_the_week
+        self.time_period = time_period
+	
+    def getDayOfTheWeek(self):
+        return self.day_of_the_week
+	
+    def getDayOfTheWeekIndex(self):
+        if self.day_of_the_week.lower() == "monday":
+            return 0
+        elif self.day_of_the_week.lower() == "tuesday":
+            return 1
+        elif self.day_of_the_week.lower() == "wednesday":
+            return 2
+        elif self.day_of_the_week.lower() == "thursday":
+            return 3
+        elif self.day_of_the_week.lower() == "friday":
+            return 4
+        elif self.day_of_the_week.lower() == "saturday":
+            return 5
+        elif self.day_of_the_week.lower() == "sunday":
+            return 6
+        return -1
+
+    def getTimePeriod(self):
+        return self.time_period
+
+    def getSortKey(self):
+        return self.getDayOfTheWeekIndex() * 24 * 60 + self.time_period.getSortKey()
+
+    def checkConflict(self, other):
+        if self.day_of_the_week == other.getDayOfTheWeek():
+            return (self.time_period.getStartTimeToMinute() < other.time_period.getEndTimeToMinute()) and (self.time_period.getEndTimeToMinute() > other.time_period.getStartTimeToMinute())
+        return False
 
 class Schedule():
-	def __init__(self, title:str="New Schedule", color:str=colors.COLOR_AQUA, schedule_time_list:List[custom_date.DayScheduleTime] = []):
+	def __init__(self, title:str="New Schedule", color:str=colors.COLOR_AQUA, schedule_time_list:List[WeeklyScheduleTime] = []):
 		self.title = title
 		self.color = color
 		self.schedule_time_list = schedule_time_list
@@ -22,3 +96,33 @@ class Schedule():
 				if schedule_time.checkConflict(other_schedule_time):
 					return True
 		return False
+
+class Todo():
+	def __init__(self, title:str, description:str, date:date, time_period:TimePeriod, parent_schedule: Schedule, color:str):
+		self.title = title
+		self.description = description
+		self.date = date
+		self.time_period = time_period
+		self.parent_schedule = parent_schedule
+		self.color = color
+		
+	def getTitle(self):
+		return self.title
+
+	def getDescription(self):
+		return self.description
+
+	def getDate(self):
+		return self.date
+
+	def getTimePeriod(self):
+		return self.time_period
+
+	def getParentSchedule(self):
+		return self.parent_schedule
+
+	def getColor(self):
+		return self.color
+
+	def getSortKey(self):
+		return self.time_period.getSortKey()

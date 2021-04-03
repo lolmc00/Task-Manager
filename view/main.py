@@ -13,7 +13,7 @@ class MainWindow(QtWidgets.QWidget):
     """메인 윈도우"""
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Task Manager")
+        self.setWindowTitle("Todo Manager")
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         # 전체 레이아웃 생성
@@ -85,17 +85,17 @@ class MainWindow(QtWidgets.QWidget):
         if type == view_type.HOME_VIEW:
             self.container_view.setCurrentWidget(self.home_view)
             self.setSize(home_view.WIDTH, home_view.HEIGHT)
-            self.setWindowTitle("Task Manager")
+            self.setWindowTitle("Todo Manager")
             self.topbar.hide_home_btn()
         elif type == view_type.TIME_TABLE_VIEW:
             self.container_view.setCurrentWidget(self.time_table_view)
             self.setSize(time_table_view.WIDTH, time_table_view.HEIGHT)
-            self.setWindowTitle("Task Manager - Time Table")
+            self.setWindowTitle("Todo Manager - Time Table")
             self.topbar.show_home_btn()
         elif type == view_type.TODO_LIST_VIEW:
             self.container_view.setCurrentWidget(self.todo_list_view)
             self.setSize(todo_list_view.WIDTH, todo_list_view.HEIGHT)
-            self.setWindowTitle("Task Manager - Todo List")
+            self.setWindowTitle("Todo Manager - Todo List")
             self.topbar.show_home_btn()
         elif type == view_type.TIME_TABLE_VIEW:
             self.container_view.setCurrentWidget(self.time_table_view)

@@ -5,13 +5,13 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from . import custom_widget, tooltip
-from module import custom_date, colors, data, task
+from module import task, colors, data
 
 CELL_HEIGHT = 33
 CELL_WIDTH = 125
 
 class TimeTableScheduleItem(tooltip.ToolTipWidget):
-    def __init__(self, parent:QtWidgets.QWidget=None, title:str="New Schedule", color:str=colors.COLOR_AQUA, schedule:task.Schedule=None, schedule_time:custom_date.DayScheduleTime=None, table:QtWidgets.QWidget=None):
+    def __init__(self, parent:QtWidgets.QWidget=None, title:str="New Schedule", color:str=colors.COLOR_AQUA, schedule:task.Schedule=None, schedule_time:task.WeeklyScheduleTime=None, table:QtWidgets.QWidget=None):
         super().__init__(parent)
         self.table = table
         self.parent = parent
@@ -20,9 +20,9 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
         self.title = title
         self.color = color
         for schedule_time in schedule.getScheduleTimeList():
-            super().addItem(title, schedule_time, color)
+            super().addItem(title, schedule_time, schedule_time == self.schedule_time, color)
         self.setObjectName("container")
-        self.setStyleSheet("QWidget{background-color:%s; font-family:'나눔스퀘어';} QWidget#container{border-top: 5px solid #DDDDDD;}" % (color))
+        self.setStyleSheet("QWidget{background-color:%s; font-family:'나눔스퀘어';} QWidget#container{border-top: 3px solid #DDDDDD;}" % (color))
         self.setContentsMargins(4, 6, 2, 2)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_StyledBackground)
         self.setGeometryByTime()
@@ -42,8 +42,8 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
     def setGeometryByTime(self):
         parent_height = float(self.parent.height())
         DAY_MINUTE = float(24 * 60)
-        start_minute = float(self.schedule_time.getStartTimeToMinute())
-        end_minute = float(self.schedule_time.getEndTimeToMinute())
+        start_minute = float(self.schedule_time.getTimePeriod().getStartTimeToMinute())
+        end_minute = float(self.schedule_time.getTimePeriod().getEndTimeToMinute())
         x = self.parent.contentsMargins().left()
         y = parent_height * (start_minute/DAY_MINUTE)
         height = (parent_height * (end_minute/DAY_MINUTE)) - y
@@ -120,6 +120,8 @@ class TimeTableWidget(QtWidgets.QWidget):
                     schedule_item.setParent(None)
 
     def editSchedule(self, schedule:task.Schedule):
+        if self.parent.widget_setting.current_editing_schedule == schedule:
+            return
         for idx in range(len(self.widget_time_list)):
             for schedule_item in self.widget_time_list[idx].children():
                 schedule_item.setFocusOn(schedule_item.schedule == schedule)
