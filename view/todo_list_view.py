@@ -13,6 +13,7 @@ HEIGHT = CELL_SIZE * 26
 class TodoListView(QtWidgets.QWidget):
     def __init__(self, main=None):
         super().__init__(None)
+        self.main = main
         self.layout = QtWidgets.QHBoxLayout(self)
         self.layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
         self.layout.setContentsMargins(0,0,0,0)
@@ -24,7 +25,7 @@ class TodoListView(QtWidgets.QWidget):
         self.layout.addLayout(self.layout_vertical_1)
 
         # Todo List 위젯
-        self.widget_todo_list = todo_list_widget.TodoListWidget(self)
+        self.widget_todo_list = todo_list_widget.TodoListWidget(self, self.main)
         self.layout_vertical_1.addWidget(self.widget_todo_list)
 
         # 상단 정렬용 레이아웃
@@ -42,3 +43,7 @@ class TodoListView(QtWidgets.QWidget):
         self.widget_setting = todo_input_widget.TodoInputWidget(self)
         self.layout_setting_container.addWidget(self.widget_setting)
         self.layout_vertical_2.addWidget(self.widget_setting_container)
+
+    def loadData(self):
+        self.widget_todo_list.loadData()
+        self.widget_setting.loadData()

@@ -45,11 +45,13 @@ class ScheduleListBox(QtWidgets.QWidget):
 			# 수정 버튼
 			self.btn_edit = custom_widget.HoverButton("edit", 20)
 			self.btn_edit.clicked.connect(lambda: self.edit())
+			self.btn_edit.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 			self.layout_top.addWidget(self.btn_edit)
 
 			# 삭제 버튼
 			self.btn_remove = custom_widget.HoverButton("remove", 20)
 			self.btn_remove.clicked.connect(lambda: self.delete())
+			self.btn_remove.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 			self.layout_top.addWidget(self.btn_remove)
 
 			# 컨텐츠 컨테이너

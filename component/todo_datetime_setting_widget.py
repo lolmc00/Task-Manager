@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from datetime import date, timedelta
-from component import schedule_time_setting_widget
+from component import time_period_widget
 from module import task, data
 
 weekday_string_list = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
@@ -52,7 +52,7 @@ class TodoDatetimeSettingWidget(QtWidgets.QWidget):
 		self.layout.addWidget(self.combo_parent_schedule)
 
 		# From To 시간 설정 위젯
-		self.widget_time_schedule = schedule_time_setting_widget.ScheduleTimeSettingWidget(self)
+		self.widget_time_schedule = time_period_widget.TimePeirodWidget(self)
 		self.layout.addWidget(self.widget_time_schedule)
 
 		# Items 초기화

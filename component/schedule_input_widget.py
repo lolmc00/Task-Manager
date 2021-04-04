@@ -49,15 +49,15 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		self.layout.addWidget(self.widget_btn_container)
 
-		# 스케쥴 생성 UI로 열기
+		# 로드 데이터
+		self.loadData()
+
+	
+
+	def loadData(self):
+		# 스케쥴 생성 UI 열기
 		self.openCreateNewSchedule()
-
-		# 아이템 로드
-		self.loadScheduleItem()
-
-	def loadScheduleItem(self):
-		for schedule in data.schedule_list:
-			self.parent.widget_table.addSchedule(schedule)
+		
 
 	def openCreateNewSchedule(self):
 		QtWidgets.QWidget().setLayout(self.widget_btn_container.layout())
@@ -70,11 +70,14 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.btn_create_schedule = QtWidgets.QPushButton("Create Schedule")
 		self.btn_create_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px} QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
 		self.btn_create_schedule.clicked.connect(self.createSchedule)
+		self.btn_create_schedule.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		# 테이블 초기화 버튼
 		self.btn_reset_table = QtWidgets.QPushButton("Reset Timetable")
+		self.btn_reset_table.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		self.btn_reset_table.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_RED, colors.COLOR_DARK_RED))
 		self.layout_btn_container.addWidget(self.btn_create_schedule)
 		self.layout_btn_container.addWidget(self.btn_reset_table)
+		
 
 	def openEditSchedule(self, schedule:task.Schedule):
 		self.current_editing_schedule = schedule
@@ -83,16 +86,19 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		# 스케쥴 적용 버튼
 		self.btn_apply_schedule = QtWidgets.QPushButton("Apply")
+		self.btn_apply_schedule.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		self.btn_apply_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_AQUA, colors.COLOR_DARK_AQUA))
 		self.btn_apply_schedule.clicked.connect(lambda:self.applySchedule(schedule))
 
 		# 스케쥴 삭제 버튼
 		self.btn_delete_schedule = QtWidgets.QPushButton("Delete")
+		self.btn_delete_schedule.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		self.btn_delete_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_RED, colors.COLOR_DARK_RED))
 		self.btn_delete_schedule.clicked.connect(lambda:self.deleteSchedule(schedule))
 
 		# 새로운 스케쥴 생성 버튼
 		self.btn_new_schedule = QtWidgets.QPushButton("New Schedule")
+		self.btn_new_schedule.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		self.btn_new_schedule.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
 		self.btn_new_schedule.clicked.connect(lambda:self.openCreateNewSchedule())
 		self.layout_btn_container.addWidget(self.btn_apply_schedule)
@@ -103,8 +109,8 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.label_schedule_title.setText("Edit Schedule")
 		self.edit_schedule_title.setText(schedule.getTitle())
 		self.widget_color_box.selectColorItem(schedule.getColor())
-		self.widget_time_list.setScheduleItem(schedule_time_list=schedule.getScheduleTimeList())
-		self.widget_time_schedule.setCurrentTime(task.TimePeriod("0", "0", "1", "0"))
+		self.widget_time_setting.widget_time_list.setScheduleItem(schedule_time_list=schedule.getScheduleTimeList())
+		self.widget_time_setting.widget_time_period.setCurrentTime(task.TimePeriod("0", "0", "1", "0"))
 
 	def getSchedule(self):
 		title = self.edit_schedule_title.text()
@@ -131,6 +137,10 @@ class ScheduleInputWidget(QtWidgets.QWidget):
 		self.openCreateNewSchedule()
 
 	def applySchedule(self, schedule:task.Schedule):
+		test_text = self.testScheduleSetting(self.getSchedule())
+		if test_text != None:
+			self.showAlertText(test_text)
+			return
 		self.createSchedule()
 		self.deleteSchedule(schedule)
 

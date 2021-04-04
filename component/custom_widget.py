@@ -11,7 +11,7 @@ class MultipleLineLabel(QtWidgets.QLabel):
 		self.origin_text = text
 		self.max_size = max_size
 		self.setText(text)
-		font = QtGui.QFont("나눔스퀘어")
+		font = QtGui.QFont("Segoe UI")
 		font.setPixelSize(self.max_size)
 		font.setWeight(QtGui.QFont.Weight.ExtraBold)
 		self.setFont(font)
@@ -22,33 +22,36 @@ class MultipleLineLabel(QtWidgets.QLabel):
 		self.updateLabelText()
 
 	def updateLabelText(self):
-		font = self.font()
-		metrics = QtGui.QFontMetrics(font)
-		# 텍스트 font-size AutoScaling
-		parent_size = self.parent.contentsRect().width() * (self.parent.contentsRect().height() * 0.8)
-		text_size = metrics.boundingRect(self.text()).width() * metrics.boundingRect(self.text()).height()
-		scale_mult = (float(parent_size)/float(text_size * 1.5)) ** 0.5
-		auto_scaled_font_size = min(self.max_size, int(font.pixelSize() * scale_mult))
-		font.setPixelSize(auto_scaled_font_size)
-		self.setFont(font)
-		metrics = QtGui.QFontMetrics(font)
+		try:
+			font = self.font()
+			metrics = QtGui.QFontMetrics(font)
+			# 텍스트 font-size AutoScaling
+			parent_size = self.parent.contentsRect().width() * (self.parent.contentsRect().height() * 0.8)
+			text_size = metrics.boundingRect(self.text()).width() * metrics.boundingRect(self.text()).height()
+			scale_mult = (float(parent_size)/float(text_size * 1.5)) ** 0.5
+			auto_scaled_font_size = min(self.max_size, int(font.pixelSize() * scale_mult))
+			font.setPixelSize(auto_scaled_font_size)
+			self.setFont(font)
+			metrics = QtGui.QFontMetrics(font)
 
-		# 텍스트 자동 개행
-		text_list = []
-		text = self.text()
-		curr_width = 0
-		prev_pos = 0
-		for pos in range(len(text)):
-			width = metrics.boundingRect(text[pos]).width() + metrics.leftBearing(text[pos]) + metrics.rightBearing(text[pos])
-			if curr_width + width > self.parent.contentsRect().width():
-				text_list.append(text[prev_pos : pos])
-				text_list.append('<br>')
-				curr_width = width
-				prev_pos = pos
-			else:
-				curr_width += width
-		text_list.append(text[prev_pos:len(text)])
-		self.setText(''.join(text_list))
+			# 텍스트 자동 개행
+			text_list = []
+			text = self.text()
+			curr_width = 0
+			prev_pos = 0
+			for pos in range(len(text)):
+				width = metrics.boundingRect(text[pos]).width() + metrics.leftBearing(text[pos]) + metrics.rightBearing(text[pos])
+				if curr_width + width > self.parent.contentsRect().width():
+					text_list.append(text[prev_pos : pos])
+					text_list.append('<br>')
+					curr_width = width
+					prev_pos = pos
+				else:
+					curr_width += width
+			text_list.append(text[prev_pos:len(text)])
+			self.setText(''.join(text_list))
+		except:
+			self.setText('')
 
 class HoverButton(QtWidgets.QToolButton):
 	def __init__(self, image_name=None, image_size=24):

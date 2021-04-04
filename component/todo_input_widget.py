@@ -16,7 +16,7 @@ class TodoInputWidget(QtWidgets.QWidget):
 		self.layout.setContentsMargins(10,0,10,0)
 
 		# 현재 수정중인 Todo 아이템 (None == New Schedule)
-		self.current_editing_todo_item = None
+		self.current_editing_todo = None
 
 		# Todo 제목 레이블 생성
 		self.label_todo_title = QtWidgets.QLabel("New Schedule")
@@ -54,18 +54,16 @@ class TodoInputWidget(QtWidgets.QWidget):
 		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		self.layout.addWidget(self.widget_btn_container)
 
+		# 아이템 로드
+		self.loadData()
+
+	def loadData(self):
 		# 업무 생성 UI 열기
 		self.openCreateNewTodo()
 
-		# 아이템 로드
-		self.loadScheduleItem()
-
-	def loadScheduleItem(self):
-		self.parent.widget_todo_list.applyGrid()
-
 	def openCreateNewTodo(self):
 		QtWidgets.QWidget().setLayout(self.widget_btn_container.layout())
-		self.current_editing_todo_item = None
+		self.current_editing_todo = None
 		self.resetInput()
 		self.parent.widget_todo_list.resetFocusItems()
 		self.label_todo_title.setText("New Todo")
@@ -74,40 +72,54 @@ class TodoInputWidget(QtWidgets.QWidget):
 		self.btn_create_todo = QtWidgets.QPushButton("Create To Do")
 		self.btn_create_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px} QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
 		self.btn_create_todo.clicked.connect(self.createTodo)
+		self.btn_create_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		self.layout_btn_container.addWidget(self.btn_create_todo)
 
-	def openEditTodo(self, todo_item:todo_list_widget.TodoItem):
-		self.current_editing_todo_item = todo_item
-		self.setTodoEditInput(todo_item)
+	def openEditTodo(self, todo:task.Todo):
+		self.current_editing_todo = todo
+		self.setTodoEditInput(todo)
 		QtWidgets.QWidget().setLayout(self.widget_btn_container.layout())
 		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
-		# Todo 적용 버튼
+		# 적용 버튼
 		self.btn_apply_todo = QtWidgets.QPushButton("Apply")
+		self.btn_apply_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		self.btn_apply_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_AQUA, colors.COLOR_DARK_AQUA))
-		self.btn_apply_todo.clicked.connect(lambda:self.applyTodo(todo_item))
+		self.btn_apply_todo.clicked.connect(lambda:self.applyTodo(todo))
 
-		# 새로운 Todo 생성 버튼
-		self.btn_new_todo = QtWidgets.QPushButton("Cancel")
-		self.btn_new_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
-		self.btn_new_todo.clicked.connect(lambda:self.openCreateNewTodo())
+		# 삭제 버튼
+		self.btn_delete_todo = QtWidgets.QPushButton("Delete")
+		self.btn_delete_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		self.btn_delete_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		self.btn_delete_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_RED, colors.COLOR_DARK_RED))
+		self.btn_delete_todo.clicked.connect(lambda:self.deleteTodo(todo))
+
+		# 수정 취소 버튼
+		self.btn_edit_cancel_todo = QtWidgets.QPushButton("Cancel")
+		self.btn_edit_cancel_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		self.btn_edit_cancel_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
+		self.btn_edit_cancel_todo.clicked.connect(lambda:self.openCreateNewTodo())
 		self.layout_btn_container.addWidget(self.btn_apply_todo)
-		self.layout_btn_container.addWidget(self.btn_new_todo)
+		self.layout_btn_container.addWidget(self.btn_delete_todo)
+		self.layout_btn_container.addWidget(self.btn_edit_cancel_todo)
 
-	def setTodoEditInput(self, todo_item:todo_list_widget.TodoItem):
-		todo = todo_item.todo
+	def setTodoEditInput(self, todo:task.Todo):
 		self.label_todo_title.setText("Edit Todo")
 		self.edit_todo_title.setText(todo.getTitle())
 		self.widget_color_box.selectColorItem(todo.getColor())
 		self.widget_datetime_setting.setCurrentDateTime(todo)
 
 	def getTodo(self):
+		completed = False
+		if self.current_editing_todo != None:
+			completed = self.current_editing_todo.isCompleted()
 		title = self.edit_todo_title.text()
-		description = self.edit_todo_description.toHtml()
+		descriptionHtml = self.edit_todo_description.toHtml()
+		description = self.edit_todo_description.toPlainText()
 		color = self.widget_color_box.getCurrentColorItem().color
 		date = self.widget_datetime_setting.getDate()
 		parent_schedule = self.widget_datetime_setting.getParentSchedule()
 		time_period = self.widget_datetime_setting.getTimePeriod()
-		todo = task.Todo(title, description, date, time_period, parent_schedule, color)
+		todo = task.Todo(title, descriptionHtml, description, date, parent_schedule, color, time_period, completed)
 		return todo
 
 	def createTodo(self):
@@ -118,21 +130,26 @@ class TodoInputWidget(QtWidgets.QWidget):
 			return
 		data.todo_list.append(todo)
 		data.save()
-		self.parent.widget_todo_list.addTodo(todo)
+		self.parent.widget_todo_list.addTodoItem(todo)
 		self.resetInput()
 
-	def deleteTodo(self, todo_item:todo_list_widget.TodoItem):
-		data.todo_list.remove(todo_item.todo)
+	def deleteTodo(self, todo:task.Todo):
+		data.todo_list.remove(todo)
 		data.save()
-		self.parent.widget_todo_list.deleteTodo(todo_item)
+		self.parent.widget_todo_list.deleteTodoItem(todo)
 		self.openCreateNewTodo()
 
-	def applyTodo(self, todo_item:todo_list_widget.TodoItem):
+	def applyTodo(self, todo:task.Todo):
+		test_text = self.testTodoSetting(self.getTodo())
+		if test_text != None:
+			self.showAlertText(test_text)
+			return
 		self.createTodo()
-		self.deleteTodo(todo_item)
+		self.deleteTodo(todo)
 
 	def resetInput(self):
 		self.edit_todo_title.setText("")
+		self.edit_todo_description.setText("")
 		self.widget_color_box.selectColorItem(colors.COLOR_GREEN)
 		self.resetDateTimeSettingInput()
 

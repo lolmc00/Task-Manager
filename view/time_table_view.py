@@ -48,3 +48,7 @@ class TimeTableView(QtWidgets.QWidget):
         self.widget_setting = schedule_input_widget.ScheduleInputWidget(self)
         self.layout_setting_container.addWidget(self.widget_setting)
         self.layout_vertical_2.addWidget(self.widget_setting_container)
+
+    def loadData(self):
+        self.widget_table.loadData()
+        self.widget_setting.loadData()

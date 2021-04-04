@@ -1,6 +1,6 @@
 from . import colors
 from typing import List
-from datetime import date
+from datetime import date, datetime
 
 class TimePeriod():
 	def __init__(self, start_time, start_time_minute, end_time, end_time_minute):
@@ -39,41 +39,54 @@ class TimePeriod():
 	def getSortKey(self):
 		return self.getStartTimeToMinute()
 
+	def isInTime(self, datetime:datetime):
+		if self.getStartTimeToMinute() <= (datetime.hour * 60 + datetime.minute) <= self.getEndTimeToMinute():
+			return True
+
+	def getDuringMinute(self):
+		return self.getEndTimeToMinute() - self.getStartTimeToMinute()
+
 class WeeklyScheduleTime():
-    def __init__(self, day_of_the_week, time_period:TimePeriod):
-        self.day_of_the_week = day_of_the_week
-        self.time_period = time_period
+	def __init__(self, day_of_the_week, time_period:TimePeriod):
+		self.day_of_the_week = day_of_the_week
+		self.time_period = time_period
 	
-    def getDayOfTheWeek(self):
-        return self.day_of_the_week
+	def getDayOfTheWeek(self):
+		return self.day_of_the_week
 	
-    def getDayOfTheWeekIndex(self):
-        if self.day_of_the_week.lower() == "monday":
-            return 0
-        elif self.day_of_the_week.lower() == "tuesday":
-            return 1
-        elif self.day_of_the_week.lower() == "wednesday":
-            return 2
-        elif self.day_of_the_week.lower() == "thursday":
-            return 3
-        elif self.day_of_the_week.lower() == "friday":
-            return 4
-        elif self.day_of_the_week.lower() == "saturday":
-            return 5
-        elif self.day_of_the_week.lower() == "sunday":
-            return 6
-        return -1
+	def getDayOfTheWeekIndex(self):
+		if self.day_of_the_week.lower() == "monday":
+			return 0
+		elif self.day_of_the_week.lower() == "tuesday":
+			return 1
+		elif self.day_of_the_week.lower() == "wednesday":
+			return 2
+		elif self.day_of_the_week.lower() == "thursday":
+			return 3
+		elif self.day_of_the_week.lower() == "friday":
+			return 4
+		elif self.day_of_the_week.lower() == "saturday":
+			return 5
+		elif self.day_of_the_week.lower() == "sunday":
+			return 6
+		return -1
 
-    def getTimePeriod(self):
-        return self.time_period
+	def getTimePeriod(self):
+		return self.time_period
 
-    def getSortKey(self):
-        return self.getDayOfTheWeekIndex() * 24 * 60 + self.time_period.getSortKey()
+	def getSortKey(self):
+		return self.getDayOfTheWeekIndex() * 24 * 60 + self.time_period.getSortKey()
 
-    def checkConflict(self, other):
-        if self.day_of_the_week == other.getDayOfTheWeek():
-            return (self.time_period.getStartTimeToMinute() < other.time_period.getEndTimeToMinute()) and (self.time_period.getEndTimeToMinute() > other.time_period.getStartTimeToMinute())
-        return False
+	def checkConflict(self, other):
+		if self.day_of_the_week == other.getDayOfTheWeek():
+			return (self.time_period.getStartTimeToMinute() < other.time_period.getEndTimeToMinute()) and (self.time_period.getEndTimeToMinute() > other.time_period.getStartTimeToMinute())
+		return False
+
+	def isInTime(self, datetime:datetime):
+		if self.getDayOfTheWeekIndex() == datetime.weekday():
+			if self.getTimePeriod().isInTime(datetime):
+				return True
+		return False
 
 class Schedule():
 	def __init__(self, title:str="New Schedule", color:str=colors.COLOR_AQUA, schedule_time_list:List[WeeklyScheduleTime] = []):
@@ -98,16 +111,21 @@ class Schedule():
 		return False
 
 class Todo():
-	def __init__(self, title:str, description:str, date:date, time_period:TimePeriod, parent_schedule: Schedule, color:str):
+	def __init__(self, title:str, descriptionHtml:str, description:str, date:date, parent_schedule: Schedule, color:str, time_period:TimePeriod=TimePeriod(0, 0, 24, 0), completed:bool=False):
 		self.title = title
+		self.descriptionHtml = descriptionHtml
 		self.description = description
 		self.date = date
 		self.time_period = time_period
 		self.parent_schedule = parent_schedule
 		self.color = color
+		self.completed = completed
 		
 	def getTitle(self):
 		return self.title
+
+	def getDescriptionHtml(self):
+		return self.descriptionHtml
 
 	def getDescription(self):
 		return self.description
@@ -125,4 +143,24 @@ class Todo():
 		return self.color
 
 	def getSortKey(self):
-		return self.time_period.getSortKey()
+		return self.isCompleted() * 10000 + self.time_period.getSortKey()
+
+	def isInTime(self, datetime:datetime):
+		if self.getParentSchedule() != None:
+			for schedule_time in self.getParentSchedule().getScheduleTimeList():
+				if schedule_time.isInTime(datetime):
+					return True
+		else:
+			if self.getDate().strftime("%Y %m %d") == datetime.strftime("%Y %m %d"):
+				if self.getTimePeriod().isInTime(datetime):
+					return True
+		return False
+
+	def isCompleted(self):
+		return self.completed
+
+	def complete(self):
+		self.completed = True
+
+	def redo(self):
+		self.completed = False
