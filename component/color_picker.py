@@ -3,7 +3,7 @@ import sys
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
-from module import colors
+from modules import colors
 
 class ColorItemBox(QtWidgets.QWidget):
 	CELL_SIZE = 17

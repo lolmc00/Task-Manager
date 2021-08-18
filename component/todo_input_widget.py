@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from component import todo_datetime_setting_widget, color_picker, todo_list_widget
-from module import colors, data, task
+from modules import colors, data, task
 
 class TodoInputWidget(QtWidgets.QWidget):
 	def __init__(self, parent=None, todo:task.Schedule=None):
@@ -70,8 +70,9 @@ class TodoInputWidget(QtWidgets.QWidget):
 		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		# Todo 생성 버튼
 		self.btn_create_todo = QtWidgets.QPushButton("Create To Do")
-		self.btn_create_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px} QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
+		self.btn_create_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 600 15px; border-radius:0px} QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
 		self.btn_create_todo.clicked.connect(self.createTodo)
+		self.btn_create_todo.setFixedHeight(35)
 		self.btn_create_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		self.layout_btn_container.addWidget(self.btn_create_todo)
 
@@ -82,21 +83,23 @@ class TodoInputWidget(QtWidgets.QWidget):
 		self.layout_btn_container = QtWidgets.QHBoxLayout(self.widget_btn_container)
 		# 적용 버튼
 		self.btn_apply_todo = QtWidgets.QPushButton("Apply")
+		self.btn_apply_todo.setFixedHeight(35)
 		self.btn_apply_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		self.btn_apply_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_AQUA, colors.COLOR_DARK_AQUA))
+		self.btn_apply_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 600 15px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_AQUA, colors.COLOR_DARK_AQUA))
 		self.btn_apply_todo.clicked.connect(lambda:self.applyTodo(todo))
 
 		# 삭제 버튼
 		self.btn_delete_todo = QtWidgets.QPushButton("Delete")
 		self.btn_delete_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		self.btn_delete_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		self.btn_delete_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_RED, colors.COLOR_DARK_RED))
+		self.btn_delete_todo.setFixedHeight(35)
+		self.btn_delete_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 600 15px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_PINK, colors.COLOR_DARK_PINK))
 		self.btn_delete_todo.clicked.connect(lambda:self.deleteTodo(todo))
 
 		# 수정 취소 버튼
 		self.btn_edit_cancel_todo = QtWidgets.QPushButton("Cancel")
 		self.btn_edit_cancel_todo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		self.btn_edit_cancel_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 500 11px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
+		self.btn_edit_cancel_todo.setFixedHeight(35)
+		self.btn_edit_cancel_todo.setStyleSheet("QPushButton{border:0px; background-color: %s; font: 600 15px; border-radius:0px}  QPushButton:hover{background-color:%s}" % (colors.COLOR_GREEN, colors.COLOR_DARK_GREEN))
 		self.btn_edit_cancel_todo.clicked.connect(lambda:self.openCreateNewTodo())
 		self.layout_btn_container.addWidget(self.btn_apply_todo)
 		self.layout_btn_container.addWidget(self.btn_delete_todo)
@@ -162,7 +165,7 @@ class TodoInputWidget(QtWidgets.QWidget):
 	
 	def showAlertText(self, text):
 		alert = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Icon.NoIcon, "Task Manager", "[ ! ] " + text, QtWidgets.QMessageBox.StandardButton.Yes)
-		alert.setStyleSheet("font: bold 13px 'Segoe UI';")
+		alert.setStyleSheet("QPushButton{width:80px}")
 		alert.exec()
 	
 	def testTodoSetting(self, todo:task.Todo):

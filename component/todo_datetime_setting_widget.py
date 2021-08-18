@@ -5,9 +5,16 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from datetime import date, timedelta
 from component import time_period_widget
-from module import task, data
+from modules import task, data
 
 weekday_string_list = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+
+def last_day_of_month(day) -> date:
+	# this will never fail
+	# get close to the end of the month for any day, and add 4 days 'over'
+	next_month = day.replace(day=28) + timedelta(days=4)
+	# subtract the number of remaining 'overage' days to get last day of current month, or said programattically said, the previous day of the first of next month
+	return next_month - timedelta(days=next_month.day)
 
 class TodoDatetimeSettingWidget(QtWidgets.QWidget):
 	def __init__(self, parent=None):
@@ -65,6 +72,9 @@ class TodoDatetimeSettingWidget(QtWidgets.QWidget):
 		self.combo_parent_schedule.currentIndexChanged.connect(self.onChangeParentScheduleIndex)
 
 	def resetItems(self):
+		self.combo_year.clear()
+		self.combo_month.clear()
+		self.combo_day.clear()
 		year = date.today().year
 		month = date.today().month
 		day = date.today().day
@@ -84,24 +94,31 @@ class TodoDatetimeSettingWidget(QtWidgets.QWidget):
 		self.combo_day.setCurrentIndex(new_date.day - 1)
 
 	def onChangeYear(self, value):
-		year = int(value)
-		month = int(self.combo_month.currentText())
-		day = int(self.combo_day.currentText()[:2])
-		self.applyDayComboBox(date(year, month, day))
-
+		try:
+			year = int(value)
+			month = int(self.combo_month.currentText())
+			day = min(last_day_of_month(date(year, month, 1)).day, (int)(self.combo_day.currentText()[:2]))
+			self.applyDayComboBox(date(year, month, day))
+		except ValueError:
+			return
+			
 	def onChangeMonth(self, value):
-		year = int(self.combo_year.currentText())
-		month = int(value)
-		day = int(self.combo_day.currentText()[:2])
-		self.applyDayComboBox(date(year, month, day))
+		try:
+			year = int(self.combo_year.currentText())
+			month = int(value)
+			day = min(last_day_of_month(date(year, month, 1)).day, (int)(self.combo_day.currentText()[:2]))
+			self.applyDayComboBox(date(year, month, day))
+		except ValueError:
+			return
 
 	def onChangeDay(self, value):
-		if value == "":
+		try:
+			year = int(self.combo_year.currentText())
+			month = int(self.combo_month.currentText())
+			day = int(value[:2])
+			self.onChangeDate(date(year, month, day))
+		except ValueError:
 			return
-		year = int(self.combo_year.currentText())
-		month = int(self.combo_month.currentText())
-		day = int(value[:2])
-		self.onChangeDate(date(year, month, day))
 
 	def onChangeDate(self, new_date:date):
 		day_of_week = self.getDate().weekday()
@@ -162,9 +179,3 @@ class TodoDatetimeSettingWidget(QtWidgets.QWidget):
 		return day
 
 
-def last_day_of_month(day) -> date:
-	# this will never fail
-	# get close to the end of the month for any day, and add 4 days 'over'
-	next_month = day.replace(day=28) + timedelta(days=4)
-	# subtract the number of remaining 'overage' days to get last day of current month, or said programattically said, the previous day of the first of next month
-	return next_month - timedelta(days=next_month.day)

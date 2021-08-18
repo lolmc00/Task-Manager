@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from typing import List
-from module import data, task, colors
+from modules import data, task, colors
 from datetime import datetime
 from component import todo_list_widget, todo_input_widget
 
@@ -26,7 +26,8 @@ class TodoItem(QtWidgets.QWidget):
 
 		# 제목 라벨
 		self.label_title = QtWidgets.QLabel()
-		self.label_title.setStyleSheet("font: 600 15px;")
+		self.label_title.setAttribute(QtCore.Qt.WA_InputMethodTransparent)
+		self.label_title.setStyleSheet("font: 600 15px '나눔스퀘어';")
 		elided_title = self.label_title.fontMetrics().elidedText(todo.getTitle(), QtCore.Qt.TextElideMode.ElideRight, self.label_title.width())
 		self.label_title.setText(elided_title)
 		self.label_title.adjustSize()
@@ -40,27 +41,29 @@ class TodoItem(QtWidgets.QWidget):
 		# 시작 시간, 끝 시간 레이블
 		if todo.getParentSchedule() != None:
 			self.label_time = QtWidgets.QLabel("%s" % todo.getParentSchedule().getTitle())
-			self.label_time.setStyleSheet("font: 500 15px; color:%s" % (todo.getParentSchedule().getColor()))
+			self.label_time.setStyleSheet("font: 500 15px '나눔스퀘어'; color:%s" % (todo.getParentSchedule().getColor()))
 		else:
 			self.label_time = QtWidgets.QLabel("%s:%s ~ %s:%s" % (todo.getTimePeriod().getStartTimeString(), todo.getTimePeriod().getStartTimeMinuteString(), \
 			todo.getTimePeriod().getEndTimeString(), todo.getTimePeriod().getEndTimeMinuteString()))
-			self.label_time.setStyleSheet("font: 500 15px; color:#dedede;")
+			self.label_time.setStyleSheet("font: 500 15px;")
 		self.label_time.adjustSize()
 		self.layout_hbox.addWidget(self.label_time)
 		
 		# 완료 버튼  
 		self.btn_complete = QtWidgets.QPushButton("complete")
-		self.btn_complete.setStyleSheet("padding: 0px;")
+		self.btn_complete.setStyleSheet("padding: 0px; border:2px solid %s" % colors.COLOR_PURPLE)
 		self.btn_complete.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		self.btn_complete.setContentsMargins(0, 0, 0, 0)
-		self.btn_complete.setFixedSize(100, 25)
+		self.btn_complete.setFixedSize(85, 28)
 		self.btn_complete.clicked.connect(self.onClickedCompleteBtn)
 		self.layout_hbox.addWidget(self.btn_complete)
 
 	def onClickedCompleteBtn(self):
 		self.todo.complete()
+		data.save()
 		self.setParent(None)
 		self.deleteLater()
+		QtGui.QSound.play(os.path.join(config.SOUND_PATH, "complete.wav"))
 
 weekday_string_list = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
@@ -84,6 +87,8 @@ class DisplayView(QtWidgets.QWidget):
 		self.signal = MySignal()
 		self.signal.sig_todo.connect(self.updateTodo)
 		self.signal.sig_schedule.connect(self.updateSchedule)
+		# 현재 스케쥴
+		self.current_weekly_schedule_time = None
 
 		# Todo 리스트
 		self.widget_todo_list = QtWidgets.QWidget()
@@ -105,6 +110,7 @@ class DisplayView(QtWidgets.QWidget):
 		self.layout_time_schedule = QtWidgets.QVBoxLayout(self.widget_time_schedule)
 		self.pb_time_schedule = QtWidgets.QProgressBar()
 		self.pb_time_schedule.setMaximum(10000)
+		self.pb_time_schedule.setAlignment(QtCore.Qt.AlignCenter)
 		self.pb_time_schedule.setStyleSheet('border:2px solid #fff')
 		self.layout_time_schedule.addWidget(self.pb_time_schedule)
 		# 시간 정보 컨테이너
@@ -116,6 +122,7 @@ class DisplayView(QtWidgets.QWidget):
 		self.label_end_time.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
 		self.label_time_schedule_title = QtWidgets.QLabel()
 		self.label_time_schedule_title.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+		self.label_time_schedule_title.setFixedWidth(200)
 		self.layout_time_schedule_info.addWidget(self.label_start_time)
 		self.layout_time_schedule_info.addWidget(self.label_time_schedule_title)
 		self.layout_time_schedule_info.addWidget(self.label_end_time)
@@ -160,14 +167,18 @@ class DisplayView(QtWidgets.QWidget):
 			current_val -= weekly_schedule_time.getTimePeriod().getStartTimeToMinute() * 60
 			percent = float(current_val) / float(total_val)
 			self.pb_time_schedule.setValue(int(percent * self.pb_time_schedule.maximum()))
+			self.pb_time_schedule.update()
+		else:
+			self.current_weekly_schedule_time = None
+			self.widget_time_schedule.hide()
+		if weekly_schedule_time != self.current_weekly_schedule_time:
+			self.current_weekly_schedule_time = weekly_schedule_time
 			self.label_start_time.setText(weekly_schedule_time.getTimePeriod().getStartTimeString() + ":" + weekly_schedule_time.getTimePeriod().getStartTimeMinuteString())
 			self.label_end_time.setText(weekly_schedule_time.getTimePeriod().getEndTimeString() + ":" + weekly_schedule_time.getTimePeriod().getEndTimeMinuteString())
-			self.label_time_schedule_title.setStyleSheet("color:%s; font-weight: 800 15px;" % weekly_schedule.getColor())
-			elided_title = self.label_time_schedule_title.fontMetrics().elidedText("Current Schedule: " + weekly_schedule.getTitle(), QtCore.Qt.TextElideMode.ElideRight, self.label_time_schedule_title.width())
+			self.label_time_schedule_title.setStyleSheet("color:%s; font: 800 15px '나눔스퀘어';" % weekly_schedule.getColor())
+			elided_title = self.label_time_schedule_title.fontMetrics().elidedText(weekly_schedule.getTitle(), QtCore.Qt.TextElideMode.ElideRight, self.label_time_schedule_title.width())
 			self.label_time_schedule_title.setText(elided_title)
 			self.widget_time_schedule.show()
-		else:
-			self.widget_time_schedule.hide()
 
 	def setTodoList(self, todo_list:List[task.Todo]):
 		# 레이아웃 비우기
@@ -180,4 +191,5 @@ class DisplayView(QtWidgets.QWidget):
 
 	def loadData(self):
 		self.updateTodo(self.current_time)
+		self.current_weekly_schedule_time = None
 		self.updateSchedule(self.current_time)

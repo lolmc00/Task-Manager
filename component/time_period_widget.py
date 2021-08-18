@@ -2,7 +2,7 @@ import os
 import sys
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from module import task
+from modules import task
 
 class TimeSettingWidget(QtWidgets.QWidget):
 	def __init__(self, parent=None, label=None):

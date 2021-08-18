@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from component import schedule_time_list_widget, time_period_widget
-from module import task, colors, data
+from modules import task, colors, data
 
 class ScheduleTimeSettingWidget(QtWidgets.QWidget):
 	def __init__(self, parent=None, time_period:task.TimePeriod=task.TimePeriod(0, 0, 1, 0)):
@@ -12,6 +12,9 @@ class ScheduleTimeSettingWidget(QtWidgets.QWidget):
 		# 전체 레이아웃
 		self.layout = QtWidgets.QVBoxLayout(self)
 		self.layout.setContentsMargins(0, 0, 0, 0)
+
+		# 현재 수정중인 schedule time
+		self.current_editing_schedule_time = None
 
 		# 일정 시간 리스트 박스
 		self.widget_time_list = schedule_time_list_widget.ScheduleListBox(self)
@@ -87,7 +90,7 @@ class ScheduleTimeSettingWidget(QtWidgets.QWidget):
 	def applyTimeSetting(self):
 		test_text = self.testScheduleTime(self.parent().getSchedule())
 		if test_text != None:
-			self.showAlertText(test_text)
+			self.parent().showAlertText(test_text)
 			return
 		self.widget_time_list.applyItem(self.getScheduleTimeInCombo())
 		self.resetTimeSettingInput()
@@ -96,19 +99,21 @@ class ScheduleTimeSettingWidget(QtWidgets.QWidget):
 		schedule_time = self.getScheduleTimeInCombo()
 		if schedule_time.getTimePeriod().getStartTimeToMinute() >= schedule_time.getTimePeriod().getEndTimeToMinute():
 			return "The start time cannot be equal to or later than the end time."
-		schedule_time_list = schedule.getScheduleTimeList()
-		# 일정 시간이 겹치는 경우 알림
-		for i in range(len(schedule_time_list) - 1):
-			if schedule_time_list[i].checkConflict(schedule_time_list[i + 1]):
-				return "The time you set overlaps with the other time."
+		# schedule_time_list = schedule.getScheduleTimeList()
+		# # 일정 시간이 겹치는 경우 알림
+		# for i in range(len(schedule_time_list) - 1):
+		# 	if schedule_time_list[i].checkConflict(schedule_time_list[i + 1]):
+		# 		return "The time you set overlaps with the other time."
 		
 		# 다른 스케쥴과 겹치는 시간이 있으면 알림
 		for schedule in data.schedule_list:
 			for other_schedule_time in schedule.getScheduleTimeList():
+				if self.widget_time_list.current_editing_item != None and self.widget_time_list.current_editing_item.schedule_time == other_schedule_time:
+					continue
 				if schedule_time.checkConflict(other_schedule_time):
 					return "The time you set overlaps with another schedule."
 		return None
 
 	def setScheduleTimeInput(self, schedule_time:task.WeeklyScheduleTime):
 		self.combo_day_of_the_week.setCurrentIndex(schedule_time.getDayOfTheWeekIndex())
-		self.setCurrentTime(schedule_time.getTimePeriod())
+		self.widget_time_period.setCurrentTime(schedule_time.getTimePeriod())

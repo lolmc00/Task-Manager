@@ -2,7 +2,8 @@ import os
 import sys
 import webbrowser
 from PyQt5 import QtWidgets, QtGui, QtCore
-from module import task, colors
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from modules import task, colors
 
 class ToolTipWidget(QtWidgets.QWidget):
 

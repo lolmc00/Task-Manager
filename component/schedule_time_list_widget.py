@@ -3,7 +3,7 @@ import sys
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
-from module import task, colors, data
+from modules import task, colors, data
 from component import custom_widget, schedule_time_setting_widget
 
 class ScheduleListBox(QtWidgets.QWidget):
@@ -83,7 +83,7 @@ class ScheduleListBox(QtWidgets.QWidget):
 			self.setFocusOn(False)
 			self.label_day_of_the_week.setText(schedule_time.getDayOfTheWeek())
 			self.label_time_schedule_time.setText("%s:%s ~ %s:%s" % (schedule_time.getTimePeriod().getStartTimeString(), schedule_time.getTimePeriod().getStartTimeMinuteString(), \
-							schedule_time.getEndTimeString(), schedule_time.getEndTimeMinuteString()))
+							schedule_time.getTimePeriod().getEndTimeString(), schedule_time.getTimePeriod().getEndTimeMinuteString()))
 						
 		def setFocusOn(self, isFocusOn):
 			self.setStyleSheet("QWidget#container{border:1px solid %s}" % (colors.COLOR_DARK_PINK if isFocusOn else colors.COLOR_DARK_BLUE))

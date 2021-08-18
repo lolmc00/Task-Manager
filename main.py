@@ -1,13 +1,13 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+import math
 import ctypes
 from PyQt5 import QtWidgets, QtGui, QtCore
 from view import home_view, todo_list_view, time_table_view, display_view, view_type
 from component import topbar
-from module import colors, data
+from modules import colors, data
 import config
-from qt_material import apply_stylesheet
 
 class ToolTip(QtWidgets.QLabel):
     def __init__(self, parent=None):
@@ -34,6 +34,7 @@ class MainWindow(QtWidgets.QWidget):
         self.setWindowTitle("Task Manager")
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+
         # 전체 레이아웃 생성
         self.window_layout = QtWidgets.QVBoxLayout(self)
 
@@ -44,6 +45,12 @@ class MainWindow(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout(self.container)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
+
+        effect = QtWidgets.QGraphicsDropShadowEffect()
+        effect.setOffset(0, 0)
+        effect.setBlurRadius(50)
+        effect.setColor(QtGui.QColor(0, 0, 0, 212))
+        self.container.setGraphicsEffect(effect)
 
         # Top bar 생성
         self.topbar = topbar.TopBar(self)
@@ -65,7 +72,7 @@ class MainWindow(QtWidgets.QWidget):
         
         # 현재 View 설정
         self.setShadowEffect()
-        self.setView(view_type.HOME_VIEW)
+        self.setView(view_type.DISPLAY_VIEW)
         self.window_layout.addWidget(self.container)
         # ToolTip 생성
         self.tooltip = ToolTip(self)
@@ -79,7 +86,7 @@ class MainWindow(QtWidgets.QWidget):
             self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
             self.show()
             self.container_view.setCurrentWidget(self.home_view)
-            self.setSize(home_view.WIDTH, home_view.HEIGHT)
+            self.setSize(home_view.WIDTH, home_view.HEIGHT, True)
             self.setWindowTitle("Task Manager")
         elif type == view_type.TIME_TABLE_VIEW:
             if self.container_view.currentWidget() == self.display_view:
@@ -88,7 +95,7 @@ class MainWindow(QtWidgets.QWidget):
             self.show()
             self.time_table_view.loadData()
             self.container_view.setCurrentWidget(self.time_table_view)
-            self.setSize(time_table_view.WIDTH, time_table_view.HEIGHT)
+            self.setSize(time_table_view.WIDTH, time_table_view.HEIGHT, True)
             self.setWindowTitle("Task Manager - Time Table")
         elif type == view_type.TODO_LIST_VIEW:
             if self.container_view.currentWidget() == self.display_view:
@@ -97,7 +104,7 @@ class MainWindow(QtWidgets.QWidget):
             self.show()
             self.todo_list_view.loadData()
             self.container_view.setCurrentWidget(self.todo_list_view)
-            self.setSize(todo_list_view.WIDTH, todo_list_view.HEIGHT)
+            self.setSize(todo_list_view.WIDTH, todo_list_view.HEIGHT, True)
             self.setWindowTitle("Task Manager - Todo List")
         elif type == view_type.DISPLAY_VIEW:
             self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint)
@@ -106,18 +113,13 @@ class MainWindow(QtWidgets.QWidget):
                 self.setOpacityEffect()
             self.display_view.loadData()
             self.container_view.setCurrentWidget(self.display_view)
-            self.setSize(display_view.WIDTH, display_view.HEIGHT)
+            self.setSize(display_view.WIDTH, display_view.HEIGHT, False)
             self.setWindowTitle("Task Manager - Display")
 
     def setShadowEffect(self):
         self.window_layout.setContentsMargins(50, 50, 50, 50)
         # 컨테이너 외곽 그림자 효과
         self.container.setStyleSheet('color: #ffffff; background: %s; border-radius: 0px;' % colors.COLOR_BACKGROUND)
-        effect = QtWidgets.QGraphicsDropShadowEffect()
-        effect.setOffset(0, 0)
-        effect.setBlurRadius(50)
-        effect.setColor(QtGui.QColor(0, 0, 0, 212))
-        self.container.setGraphicsEffect(effect)
 
     def setOpacityEffect(self):
         # self.window_layout.setContentsMargins(0, 0, 0, 0)
@@ -127,7 +129,7 @@ class MainWindow(QtWidgets.QWidget):
         # effect.setOpacity(0.7)
         # self.container.setGraphicsEffect(effect)
 
-    def setSize(self, width: int, height:int):
+    def setSize(self, width: int, height:int, isCenter:bool):
         temp = QtWidgets.QWidget()
         # Margin값으로 빼진만큼 더해줌, Height는 상단 도구바 높이 추가로 더해줌
         margin = self.window_layout.contentsMargins()
@@ -137,13 +139,102 @@ class MainWindow(QtWidgets.QWidget):
         # 화면 가운데로 옮기기
         frameGm = temp.frameGeometry()
         screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
-        centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
-        frameGm.moveCenter(centerPoint)
+        if isCenter:
+            frameGm.moveCenter(QtWidgets.QApplication.desktop().screenGeometry(screen).center())
+        else:
+            frameGm.moveTopRight(QtWidgets.QApplication.desktop().screenGeometry(screen).topRight())
         temp.move(frameGm.topLeft())
         self.move(frameGm.topLeft())
         self.setFixedSize(temp.size())
 
+def setTheme(app, color):
+    arrow_path = os.path.join(config.IMAGE_PATH, 'down_arrow.png').replace('\\', '/')
+    arrow_disabled_path = os.path.join(config.IMAGE_PATH, 'down_arrow_disabled.png').replace('\\', '/')
+    qss = f"""
+        QWidget
+        {{
+            font: 600 15px 'Segoe UI';
+        }}
+        QPushButton
+        {{
+            padding:5px;
+        }}
+        QTextEdit
+        {{
+            border: 1px solid {color};
+            font: 600 15px '나눔스퀘어';
+            padding: 0px;
+        }}
+        QComboBox
+        {{
+            padding: 2px;
+            border-bottom: 2px solid {color}
+        }}
+        QComboBox::drop-down
+        {{
+            border: 0px;
+        }}
+        QComboBox:down-arrow
+        {{
+            image: url({arrow_path});
+            width: 14px;
+            height: 14px;
+        }}
+        QComboBox:disabled {{
+            padding: 2px;
+            border-bottom: 2px solid #B8B8B8;
+        }}
+        QComboBox:down-arrow:disabled
+        {{
+            image: url({arrow_disabled_path});
+            width: 14px;
+            height: 14px;
+        }}
+        QLineEdit
+        {{
+            padding: 2px;
+            font: 400 15px '나눔스퀘어';
+            border-bottom: 2px solid {color}
+        }}
+        QScrollBar:vertical
+        {{          
+            background:none;
+            width: 10px;
+        }}
+        QScrollBar::handle:vertical
+        {{
+            border-radius: 3px;
+            background: {color};
+            min-height: 0px;
+        }}
+        QScrollBar::add-page:vertical
+        {{
+            background:none;
+        }}
+        QScrollBar::sub-page:vertical
+        {{
+            background:none;
+        }}
+        QScrollBar::add-line:vertical
+        {{
+            height: 0px;
+        }}
+        QScrollBar::sub-line:vertical
+        {{
+            height: 0px;
+        }}
+        QProgressBar::chunk
+        {{
+            background-color: {colors.COLOR_BLUE}
+        }}
+    """
+    app.setStyleSheet(qss)
 if __name__ == "__main__":
+    # 시작 프로그램 등록
+    setting = QtCore.QSettings(config.RUN_PATH, QtCore.QSettings.NativeFormat)
+    if not setting.contains(config.APP_NAME):
+        setting.setValue(config.APP_NAME, sys.argv[0])
+
     # 데이터 로드
     data.load()
 
@@ -152,10 +243,9 @@ if __name__ == "__main__":
 
     # App 생성
     app = QtWidgets.QApplication(sys.argv)
-    app_icon = QtGui.QIcon(os.path.join(config.ROOT_PATH, "image", "icon.png"))
+    app_icon = QtGui.QIcon(os.path.join(config.IMAGE_PATH, "icon.png"))
     app.setWindowIcon(app_icon)
-    apply_stylesheet(app, theme='dark_blue.xml')
-    app.setStyleSheet(app.styleSheet() + "QWidget{font-family:'Segoe UI'} QPushButton{padding:0px;}")
+    setTheme(app, colors.COLOR_BLUE)
 
     # Window 생성
     window = MainWindow()

@@ -1,4 +1,7 @@
-from . import colors
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from modules import colors
 from typing import List
 from datetime import date, datetime
 
@@ -36,11 +39,17 @@ class TimePeriod():
 	def getEndTimeToMinute(self):
 		return self.end_time * 60 + self.end_time_minute
 
+	def getStartTimeToSecond(self):
+		return (self.start_time * 60 + self.start_time_minute) * 60
+
+	def getEndTimeToSecond(self):
+		return (self.end_time * 60 + self.end_time_minute) * 60
+
 	def getSortKey(self):
 		return self.getStartTimeToMinute()
 
 	def isInTime(self, datetime:datetime):
-		if self.getStartTimeToMinute() <= (datetime.hour * 60 + datetime.minute) <= self.getEndTimeToMinute():
+		if self.getStartTimeToSecond() <= (datetime.hour * 60 + datetime.minute) * 60 <= self.getEndTimeToSecond():
 			return True
 
 	def getDuringMinute(self):
@@ -143,6 +152,8 @@ class Todo():
 		return self.color
 
 	def getSortKey(self):
+		if self.parent_schedule != None:
+			return self.isCompleted() * 10000 + self.date.year + self.date.month + self.date.day
 		return self.isCompleted() * 10000 + self.time_period.getSortKey()
 
 	def isInTime(self, datetime:datetime):

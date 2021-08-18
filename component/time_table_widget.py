@@ -4,8 +4,8 @@ import webbrowser
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
-from . import custom_widget, tooltip
-from module import task, colors, data
+from component import custom_widget, tooltip
+from modules import task, colors, data
 
 CELL_HEIGHT = 33
 CELL_WIDTH = 125
@@ -34,7 +34,7 @@ class TimeTableScheduleItem(tooltip.ToolTipWidget):
 		self.layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
 		# 일정 제목 라벨
-		self.label_title = custom_widget.MultipleLineLabel(self, self.title, parent.geometry())
+		self.label_title = custom_widget.MultipleLineLabel(self, self.title)
 		self.label_title.setMouseTracking(True)
 		self.label_title.mouseMoveEvent = lambda event: self.mouseMoveEvent(event)
 		self.label_title.mouseReleaseEvent = lambda event : self.table.editSchedule(self.schedule)

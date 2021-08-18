@@ -4,21 +4,23 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 
-class MultipleLineLabel(QtWidgets.QLabel):
-	def __init__(self, parent:QtWidgets.QWidget=None, text:str="text", rect:QtCore.QRect=None, max_size:int = 22):
+class MultipleLineLabel(QtWidgets.QTextEdit):
+	def __init__(self, parent:QtWidgets.QWidget=None, text:str="text", max_size:int = 22):
 		super().__init__(parent)
 		self.parent = parent
 		self.origin_text = text
 		self.max_size = max_size
+		self.setFixedSize(self.parentWidget().contentsRect().size())
+		self.setReadOnly(True)
+		self.setAlignment(QtCore.Qt.AlignTop)
 		self.setText(text)
-		font = QtGui.QFont("Segoe UI")
+		self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+		self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+		font = QtGui.QFont("나눔스퀘어")
 		font.setPixelSize(self.max_size)
-		font.setWeight(QtGui.QFont.Weight.ExtraBold)
+		font.setWeight(QtGui.QFont.Weight.Bold)
+		self.setStyleSheet("border:0px; font: bold %ipx '나눔스퀘어'" % self.max_size)
 		self.setFont(font)
-		self.setGeometry(rect)
-
-	def setGeometry(self, rect:QtCore.QRect=None):
-		super().setGeometry(rect)
 		self.updateLabelText()
 
 	def updateLabelText(self):
@@ -26,32 +28,31 @@ class MultipleLineLabel(QtWidgets.QLabel):
 			font = self.font()
 			metrics = QtGui.QFontMetrics(font)
 			# 텍스트 font-size AutoScaling
-			parent_size = self.parent.contentsRect().width() * (self.parent.contentsRect().height() * 0.8)
-			text_size = metrics.boundingRect(self.text()).width() * metrics.boundingRect(self.text()).height()
+			parent_size = self.parent.contentsRect().width() * (self.parent.contentsRect().height() * 0.7)
+			text_size = metrics.boundingRect(self.toPlainText()).width() * metrics.boundingRect(self.toPlainText()).height()
 			scale_mult = (float(parent_size)/float(text_size * 1.5)) ** 0.5
 			auto_scaled_font_size = min(self.max_size, int(font.pixelSize() * scale_mult))
 			font.setPixelSize(auto_scaled_font_size)
-			self.setFont(font)
-			metrics = QtGui.QFontMetrics(font)
-
-			# 텍스트 자동 개행
-			text_list = []
-			text = self.text()
-			curr_width = 0
-			prev_pos = 0
-			for pos in range(len(text)):
-				width = metrics.boundingRect(text[pos]).width() + metrics.leftBearing(text[pos]) + metrics.rightBearing(text[pos])
-				if curr_width + width > self.parent.contentsRect().width():
-					text_list.append(text[prev_pos : pos])
-					text_list.append('<br>')
-					curr_width = width
-					prev_pos = pos
-				else:
-					curr_width += width
-			text_list.append(text[prev_pos:len(text)])
-			self.setText(''.join(text_list))
+			self.setStyleSheet("border:0px; font: bold %ipx '나눔스퀘어'" % auto_scaled_font_size)
 		except:
 			self.setText('')
+
+			# # 텍스트 자동 개행
+			# text_list = []
+			# text = self.text()
+			# curr_width = 0
+			# prev_pos = 0
+			# for pos in range(len(text)):
+			# 	width = metrics.boundingRect(text[pos]).width() + metrics.leftBearing(text[pos]) + metrics.rightBearing(text[pos])
+			# 	if curr_width + width > self.parent.contentsRect().width():
+			# 		text_list.append(text[prev_pos : pos])
+			# 		text_list.append('<br>')
+			# 		curr_width = width
+			# 		prev_pos = pos
+			# 	else:
+			# 		curr_width += width
+			# text_list.append(text[prev_pos:len(text)])
+			# self.setText(''.join(text_list))
 
 class HoverButton(QtWidgets.QToolButton):
 	def __init__(self, image_name=None, image_size=24):

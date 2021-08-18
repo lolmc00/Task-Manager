@@ -6,7 +6,7 @@ import sys
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
-from . import custom_widget
+from component import custom_widget
 from view import view_type
 
 class TopBar(QtWidgets.QWidget):

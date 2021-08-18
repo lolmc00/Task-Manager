@@ -1,6 +1,9 @@
 import dill
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from typing import List
-from module import task
+from modules import task
 
 schedule_list:List[task.Schedule] = []
 todo_list:List[task.Todo] = []

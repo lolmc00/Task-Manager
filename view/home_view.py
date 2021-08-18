@@ -3,7 +3,9 @@ import sys
 import webbrowser
 from PyQt5 import QtWidgets, QtGui, QtCore
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-import main, time_table_view, view_type, config
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from view import view_type
+import config
 from component import custom_widget
 
 WIDTH = 400
