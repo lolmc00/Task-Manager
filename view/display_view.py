@@ -2,7 +2,7 @@ import os
 import sys
 import webbrowser
 import threading
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore, QtMultimedia
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from typing import List
@@ -63,7 +63,7 @@ class TodoItem(QtWidgets.QWidget):
 		data.save()
 		self.setParent(None)
 		self.deleteLater()
-		QtGui.QSound.play(os.path.join(config.SOUND_PATH, "complete.wav"))
+		QtMultimedia.QSound.play(os.path.join(config.SOUND_PATH, "complete.wav"))
 
 weekday_string_list = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 

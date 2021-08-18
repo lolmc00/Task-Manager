@@ -1,7 +1,7 @@
 import os
 import sys
 import webbrowser
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore, QtMultimedia
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import config
 from component import week_paging_widget, tooltip, custom_widget
@@ -21,10 +21,9 @@ class TodoItem(tooltip.ToolTipWidget):
 		self.setLayout(self.layout_)
 		self.layout_.setContentsMargins(1,1,1,1)
 		self.layout_.setSpacing(0)
-		super().addTodoItem(todo, True)
 
 		# 완료된 할 일일 경우 Opacity처리
-		if self.todo.isCompleted():
+		if todo.isCompleted():
 			effect = QtWidgets.QGraphicsColorizeEffect(self)
 			effect.setColor(QtGui.QColor("#000"))
 			effect.setStrength(0.5)
@@ -112,7 +111,7 @@ class TodoItem(tooltip.ToolTipWidget):
 		# Todo Completed로 수정하고 저장 & 업데이트
 		self.todo.complete()
 		data.save()
-		QtGui.QSound.play(os.path.join(config.SOUND_PATH, "complete.wav"))
+		QtMultimedia.QSound.play(os.path.join(config.SOUND_PATH, "complete.wav"))
 		self.grid.deleteTodoItem(self.todo)
 		self.grid.addTodoItem(self.todo)
 
@@ -128,10 +127,16 @@ class TodoItem(tooltip.ToolTipWidget):
 
 	def setFocusOn(self, isFocusOn):
 		if isFocusOn:
-			self.setGraphicsEffect(None)
+			if self.todo.isCompleted():
+				effect = QtWidgets.QGraphicsColorizeEffect(self)
+				effect.setColor(QtGui.QColor("#000"))
+				effect.setStrength(0.5)
+				self.setGraphicsEffect(effect)
+			else:
+				self.setGraphicsEffect(None)
 		else:
 			opacity = QtWidgets.QGraphicsOpacityEffect(self)
-			opacity.setOpacity(0.1)
+			opacity.setOpacity(0.2)
 			self.setGraphicsEffect(opacity)
 
 class TodoListWidget(QtWidgets.QWidget):
@@ -229,9 +234,10 @@ class TodoListWidget(QtWidgets.QWidget):
 		idx = todo.getDate().weekday()
 		# SortKey값으로 정렬된 위치에 삽입
 		for pos in range(self.widget_todo_list[idx].layout().count()):
-			if self.widget_todo_list[idx].layout().itemAt(pos).widget().todo.getSortKey() >= todo.getSortKey():
-				self.widget_todo_list[idx].layout().insertWidget(pos, TodoItem(parent=None, todo=todo, grid=self, main=self.main))
-				return
+			if isinstance(self.widget_todo_list[idx].layout().itemAt(pos).widget(), tooltip.ToolTipWidget):
+				if self.widget_todo_list[idx].layout().itemAt(pos).widget().todo.getSortKey() >= todo.getSortKey():
+					self.widget_todo_list[idx].layout().insertWidget(pos, TodoItem(parent=None, todo=todo, grid=self, main=self.main))
+					return
 		self.widget_todo_list[idx].layout().addWidget(TodoItem(parent=None, todo=todo, grid=self, main=self.main))
 
 	def editTodoItem(self, todo:task.Todo):

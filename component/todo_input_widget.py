@@ -108,6 +108,7 @@ class TodoInputWidget(QtWidgets.QWidget):
 	def setTodoEditInput(self, todo:task.Todo):
 		self.label_todo_title.setText("Edit Todo")
 		self.edit_todo_title.setText(todo.getTitle())
+		self.edit_todo_description.setText(todo.getDescription())
 		self.widget_color_box.selectColorItem(todo.getColor())
 		self.widget_datetime_setting.setCurrentDateTime(todo)
 
@@ -153,7 +154,7 @@ class TodoInputWidget(QtWidgets.QWidget):
 	def resetInput(self):
 		self.edit_todo_title.setText("")
 		self.edit_todo_description.setText("")
-		self.widget_color_box.selectColorItem(colors.COLOR_GREEN)
+		self.widget_color_box.selectColorItem(colors.COLOR_DARK_BLUE)
 		self.resetDateTimeSettingInput()
 
 	def resetDateTimeSettingInput(self):
