@@ -14,7 +14,7 @@ class TodoItem(tooltip.ToolTipWidget):
 		self.todo = todo
 		self.grid = grid
 		self.setAttribute(QtCore.Qt.WA_StyledBackground)
-		self.setFixedSize(230, 110)
+		self.setFixedSize(228, 110)
 		self.setObjectName("container")
 		self.setStyleSheet("QWidget#container{border:1px solid %s}" % todo.getColor())
 		self.layout_ = QtWidgets.QVBoxLayout(self)
@@ -186,6 +186,7 @@ class TodoListWidget(QtWidgets.QWidget):
 			# Todo Item Container 생성
 			widget_todo_container = QtWidgets.QWidget()
 			widget_todo_container.setContentsMargins(0, 0, 5, 0)
+			widget_todo_container.setFixedWidth(228)
 			layout_todo_container = QtWidgets.QVBoxLayout(widget_todo_container)
 			layout_todo_container.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 			layout_todo_container.setContentsMargins(0, 0, 0, 0)
@@ -193,7 +194,7 @@ class TodoListWidget(QtWidgets.QWidget):
 			widget_todo_container.setStyleSheet("background-color:%s" % (colors.COLOR_DARK_BACKGROUND))
 			scroll_todo_container = QtWidgets.QScrollArea()
 			scroll_todo_container.setWidgetResizable(True)
-			scroll_todo_container.setFixedHeight(350)
+			scroll_todo_container.setFixedSize(237, 350)
 			scroll_todo_container.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
 			scroll_todo_container.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 			scroll_todo_container.setWidget(widget_todo_container)

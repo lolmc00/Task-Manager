@@ -199,7 +199,7 @@ def setTheme(app, color):
         QScrollBar:vertical
         {{          
             background:none;
-            width: 10px;
+            width: 7px;
         }}
         QScrollBar::handle:vertical
         {{
